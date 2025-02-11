@@ -1,5 +1,4 @@
 #Ignore what is not python code
-notebooks/
 .DS_STORE
 .idea
 *.pkl
