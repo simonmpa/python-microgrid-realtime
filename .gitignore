@@ -29,3 +29,6 @@ share/python-wheels/
 *.egg
 MANIFEST
 *sandbox.py
+
+# Data
+data/
