@@ -3,7 +3,7 @@
 .idea
 *.pkl
 pymgrid/__pycache__/
-*.ipynb
+#*.ipynb
 .ipynb_checkpoints
 __pycache__/
 
