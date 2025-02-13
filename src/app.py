@@ -1,5 +1,6 @@
 import numpy as np
 import time
+from datetime import datetime
 from pymgrid import Microgrid
 from pymgrid.modules import GensetModule, BatteryModule, LoadModule, RenewableModule, NodeModule
 
@@ -38,4 +39,4 @@ for j in range(10):
     microgrid.step(microgrid.sample_action())
 
 df = microgrid.get_log()
-df.to_csv('log.csv', index=False)
+df.to_csv('logs/log.csv' + datetime.now(), index=False)
