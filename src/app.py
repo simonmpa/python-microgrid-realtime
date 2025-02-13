@@ -39,4 +39,7 @@ for j in range(10):
     microgrid.step(microgrid.sample_action())
 
 df = microgrid.get_log()
-df.to_csv('logs/log.csv' + datetime.now(), index=False)
+
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+filename = f"logs/log-{timestamp}.csv"
+df.to_csv(filename, index=False)
