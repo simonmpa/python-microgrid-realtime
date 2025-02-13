@@ -2,6 +2,7 @@ from .battery.battery_module import BatteryModule
 from .genset_module import GensetModule
 from .grid_module import GridModule
 from .load_module import LoadModule
+from .node_module import NodeModule
 from .renewable_module import RenewableModule
 from .unbalanced_energy_module import UnbalancedEnergyModule
 
