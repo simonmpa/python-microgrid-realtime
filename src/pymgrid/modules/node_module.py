@@ -103,6 +103,11 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
     def max_consumption(self):
         return self.current_load
 
+    """
+    This function should be modified in such a way, 
+    that instead of looking at the current timestep, 
+    it simply fetches the latest consumption and returns that.
+    """
     @property
     def current_load(self):
         """
