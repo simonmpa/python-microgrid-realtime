@@ -38,7 +38,7 @@ node = NodeModule(time_series=60*np.random.rand(final_step), final_step=final_st
 # microgrid = Microgrid([genset, battery, ("pv", renewable), ("pv_spain", renewable_solar),load, node])
 microgrid = Microgrid([genset, battery, ("pv_spain", renewable_solar), load, node])
 
-
+print(microgrid.get_empty_action())
 
 
 wait_time = 15.0
