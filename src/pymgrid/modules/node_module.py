@@ -53,6 +53,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
 
     """
     module_type = ('node', 'fixed')
+    # module_type = ('node', 'controllable')
     yaml_tag = u"!NodeModule"
     yaml_dumper = yaml.SafeDumper
     yaml_loader = yaml.SafeLoader
@@ -119,9 +120,9 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
             Current load demand.
 
         """
-        #print(self._time_series[self._current_step].item())
-        #return -1 * self._time_series[self._current_step].item()
-        return -0.5
+        # print(self._time_series[self._current_step].item())
+        # return -1 * self._time_series[self._current_step].item()
+        return 250.0
 
     @property
     def is_sink(self):

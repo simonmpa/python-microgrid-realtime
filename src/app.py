@@ -15,6 +15,8 @@ print(spain.head())
 # Determine the final step based on your data length
 final_step = len(spain)  # Or however you determine the end of your simulation
 
+#np.random.seed(0)
+
 genset = GensetModule(running_min_production=10,
                       running_max_production=50,
                       genset_cost=0.5)
@@ -36,7 +38,7 @@ load = LoadModule(time_series=60*np.random.rand(final_step), final_step=final_st
 node = NodeModule(time_series=60*np.random.rand(final_step), final_step=final_step)
 
 # microgrid = Microgrid([genset, battery, ("pv", renewable), ("pv_spain", renewable_solar),load, node])
-microgrid = Microgrid([genset, battery, ("pv_spain", renewable_solar), load, node])
+microgrid = Microgrid([battery, ("pv_spain", renewable_solar), node])
 
 print(microgrid.get_empty_action())
 
@@ -50,6 +52,7 @@ starttime = time.monotonic()
 #     time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
 
 for j in range(24):
+    #print(microgrid.sample_action())
     microgrid.step(microgrid.sample_action())
 
 df = microgrid.get_log()
