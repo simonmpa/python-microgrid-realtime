@@ -10,7 +10,7 @@ df_solar = pd.read_csv('data/solarPV.csv')
 
 
 spain = df_solar["ES10"]
-#print(spain.head())
+print(spain.head(24))
 
 # Determine the final step based on your data length
 final_step = len(spain)  # Or however you determine the end of your simulation
@@ -51,11 +51,14 @@ starttime = time.monotonic()
 microgrid.reset()
 
 for j in range(24):
-    #action = {'battery': [0.5]}
+    empty_action = microgrid.get_empty_action()
+    #print((renewable_solar.current_renewable * 10))
+    empty_action.update({'battery': [node.current_load - ((renewable_solar.current_renewable) * 10)]})
 
     action = microgrid.sample_action()
-    print(action)
-    microgrid.step(action)
+
+    print(empty_action)
+    microgrid.step(empty_action)
 
 df = microgrid.get_log()
 
