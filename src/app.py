@@ -7,8 +7,6 @@ from pymgrid.modules import GensetModule, BatteryModule, LoadModule, RenewableMo
 
 df_solar = pd.read_csv('data/solarPV.csv')
 
-
-
 spain = df_solar["ES10"]
 print(spain.head(24))
 
@@ -30,11 +28,8 @@ battery = BatteryModule(min_capacity=0,
 
 renewable_solar = RenewableModule(time_series=spain, final_step=final_step)
 
-load = LoadModule(time_series=60*np.random.rand(final_step), final_step=final_step)
-
 node = NodeModule(time_series=60*np.random.rand(final_step), final_step=final_step)
 
-# microgrid = Microgrid([genset, battery, ("pv", renewable), ("pv_spain", renewable_solar),load, node])
 microgrid = Microgrid([battery, ("pv_spain", renewable_solar), node])
 
 #print(microgrid.get_empty_action())
@@ -49,27 +44,19 @@ starttime = time.monotonic()
 
 microgrid.reset()
 
-empty_action = microgrid.get_empty_action()
+custom_action = microgrid.get_empty_action()
 action = microgrid.sample_action()
 
-print(empty_action)
+print(custom_action)
 
 for j in range(24):
-    empty_action = microgrid.get_empty_action()
-    #print((renewable_solar.current_renewable * 10))
+    custom_action = microgrid.get_empty_action()
+    #print(microgrid.modules.pv_spain[0].current_renewable)
 
-    #print(microgrid.modules.load.item().current_load)
-    #print(microgrid.modules.battery[0].current_charge)
-    print(microgrid.modules.pv_spain[0].current_renewable)
+    custom_action.update({'battery': [microgrid.modules.node[0].current_load - (microgrid.modules.pv_spain[0].current_renewable * 10)]})
 
-    #load = -1.0 * microgrid.modules
-
-    empty_action.update({'battery': [node.current_load - ((renewable_solar.current_renewable) * 10)]})
-
-    action = microgrid.sample_action(strict_bound=True)
-
-    print(action)
-    microgrid.step(action)
+    #print(custom_action)
+    microgrid.step(custom_action)
 
 df = microgrid.get_log()
 

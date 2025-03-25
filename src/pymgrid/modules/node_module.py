@@ -122,7 +122,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
         """
         # print(self._time_series[self._current_step].item())
         # return -1 * self._time_series[self._current_step].item()
-        return 250.0
+        return 2.5
 
     @property
     def is_sink(self):
