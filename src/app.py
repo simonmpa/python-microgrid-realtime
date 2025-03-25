@@ -35,10 +35,9 @@ load = LoadModule(time_series=60*np.random.rand(final_step), final_step=final_st
 node = NodeModule(time_series=60*np.random.rand(final_step), final_step=final_step)
 
 # microgrid = Microgrid([genset, battery, ("pv", renewable), ("pv_spain", renewable_solar),load, node])
-microgrid = Microgrid([battery, ("pv_spain", renewable_solar), load, node])
+microgrid = Microgrid([battery, ("pv_spain", renewable_solar), node])
 
-print(microgrid.get_empty_action())
-
+#print(microgrid.get_empty_action())
 
 wait_time = 15.0
 starttime = time.monotonic()
@@ -49,6 +48,11 @@ starttime = time.monotonic()
 #     time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
 
 microgrid.reset()
+
+empty_action = microgrid.get_empty_action()
+action = microgrid.sample_action()
+
+print(empty_action)
 
 for j in range(24):
     empty_action = microgrid.get_empty_action()

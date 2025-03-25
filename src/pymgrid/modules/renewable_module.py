@@ -111,6 +111,7 @@ class RenewableModule(BaseTimeSeriesMicrogridModule):
             Renewable production.
 
         """
+        print(self._time_series[self._current_step].item(), "Current step: ", self._current_step)
         return self._time_series[self._current_step].item()
 
     @property
