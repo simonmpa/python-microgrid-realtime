@@ -53,12 +53,19 @@ microgrid.reset()
 for j in range(24):
     empty_action = microgrid.get_empty_action()
     #print((renewable_solar.current_renewable * 10))
+
+    #print(microgrid.modules.load.item().current_load)
+    #print(microgrid.modules.battery[0].current_charge)
+    print(microgrid.modules.pv_spain[0].current_renewable)
+
+    #load = -1.0 * microgrid.modules
+
     empty_action.update({'battery': [node.current_load - ((renewable_solar.current_renewable) * 10)]})
 
-    action = microgrid.sample_action()
+    action = microgrid.sample_action(strict_bound=True)
 
-    print(empty_action)
-    microgrid.step(empty_action)
+    print(action)
+    microgrid.step(action)
 
 df = microgrid.get_log()
 
