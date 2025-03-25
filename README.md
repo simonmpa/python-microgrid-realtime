@@ -1,3 +1,6 @@
+![image](https://github.com/user-attachments/assets/1c50aa6f-a8db-49b6-971d-794b2977eae3)
+
+
 # python-microgrid
 
 ![Build](https://github.com/ahalev/python-microgrid/workflows/build/badge.svg?dummy=unused)
