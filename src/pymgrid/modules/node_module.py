@@ -62,6 +62,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
 
     def __init__(self,
                  time_series,
+                 load,
                  forecaster=None,
                  forecast_horizon=DEFAULT_HORIZON,
                  forecaster_increase_uncertainty=False,
@@ -83,6 +84,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
             provided_energy_name=None,
             absorbed_energy_name='load_met'
         )
+        self._load = load
 
     def _get_bounds(self):
         _min_obs, _max_obs, _, _ = super()._get_bounds()
@@ -122,7 +124,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
         """
         # print(self._time_series[self._current_step].item())
         # return -1 * self._time_series[self._current_step].item()
-        return 2.5
+        return self._load
 
     @property
     def is_sink(self):

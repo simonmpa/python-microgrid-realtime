@@ -1,11 +1,29 @@
 import numpy as np
 import time
+import sqlite3
 from datetime import datetime
 import pandas as pd
 from pymgrid import Microgrid
 from pymgrid.modules import GensetModule, BatteryModule, LoadModule, RenewableModule, NodeModule
 
 df_solar = pd.read_csv('data/solarPV.csv')
+
+timestamp = '2025-03-25 13:00:19'
+
+connection = sqlite3.connect('database.db')
+cursor = connection.execute("SELECT Gridname, Load FROM microgrids WHERE Timestamp = ?", (timestamp,))
+rows = cursor.fetchall()
+cursor.close()
+connection.close()
+
+load_es10 = 0.0
+
+print(rows)
+r = filter(lambda x: x[0] == "ES10", rows)
+for x in r:
+    load_es10 += x[1]
+    print(x[1])
+
 
 spain = df_solar["ES10"]
 print(spain.head(24))
@@ -28,7 +46,7 @@ battery = BatteryModule(min_capacity=0,
 
 renewable_solar = RenewableModule(time_series=spain, final_step=final_step)
 
-node = NodeModule(time_series=60*np.random.rand(final_step), final_step=final_step)
+node = NodeModule(time_series=60*np.random.rand(final_step), final_step=final_step, load=load_es10)
 
 microgrid = Microgrid([battery, ("pv_spain", renewable_solar), node])
 
