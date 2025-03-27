@@ -14,13 +14,9 @@ from pymgrid.modules import (
 
 
 def get_column_names(dataframe: pd.DataFrame):
-    column_string_lists = []
+    column_names = dataframe.columns[1:].tolist()
 
-    for column in dataframe.columns[1:]:
-        string_list = [str(value) for value in dataframe[column].values]
-        column_string_lists.append(string_list)
-
-    return column_string_lists
+    return column_names
 
 
 def db_load_retrieve(last_timestamp: str):
@@ -41,11 +37,8 @@ def db_load_retrieve(last_timestamp: str):
     return rows
 
 
-def grid_load(dataframe: pd.DataFrame):
-    grid_dict = {}
-
-    for column in dataframe.columns[1:]:
-        grid_dict[column] = 0.0
+def grid_initial_load(c_names: list):
+    grid_dict = {name: 0.0 for name in c_names}
 
     return grid_dict
 
@@ -78,7 +71,10 @@ def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
 
     for name in c_names:
         node = NodeModule(
-            time_series=60 * np.random.rand(final_step),
+            time_series=60
+            * np.random.rand(
+                final_step
+            ),  # Kan være denne skal fjernes eller bare være en konstant som er udregnet baseret på hvor meget strøm vi antager computeren bruger i idle.
             final_step=final_step,
             load=grid_dict[name],
         )
@@ -116,30 +112,36 @@ def generate_microgrids(c_names: list, batteries: dict, nodes: dict, renewables:
 
 def calculate_final_step(dataframe: pd.DataFrame):
     print("length is ", len(dataframe))
-    return len(dataframe - 1)
+
+    return len(dataframe) - 1
 
 
 def main():
+    # Load the solar data and setup variables for microgrid setup
     df_solar = pd.read_csv("data/solarPV.csv")
     column_names = get_column_names(df_solar)
+    print(column_names)
     final_step = calculate_final_step(df_solar)
 
+    # Create the initial grid load dictionary, with everything set to 0.0
+    grid_dict = grid_initial_load(column_names)
+    print(grid_dict)
+
+    # Generate the battery, node, renewable and microgrid modules
     batteries = generate_battery_modules(column_names)
     nodes = generate_node_modules(column_names, final_step, grid_dict)
     renewables = generate_renewable_modules(column_names, final_step, df_solar)
     microgrids = generate_microgrids(column_names, batteries, nodes, renewables)
 
+    # Create the empty action, which will be updated with the load values
     custom_action = microgrids["ES10"].get_empty_action()
 
-    grid_dict = grid_load(df_solar)
-    print(grid_dict["ES10"], grid_dict["PT02"], grid_dict["ES12"])
-
+    # Retrieve the database rows based on the last timestamp
     rows = db_load_retrieve("2025-03-25 13:00:19")
-
     # print(rows)
 
     update_grid_load(grid_dict=grid_dict, rows=rows)
-    print(grid_dict["ES10"], grid_dict["PT02"], grid_dict["ES12"])
+    # print(grid_dict["ES10"], grid_dict["PT02"], grid_dict["ES12"])
 
     # spain = df_solar["ES10"]
     # print(spain.head(24))
@@ -183,15 +185,25 @@ def main():
     for j in range(24):
         # custom_action = microgrid.get_empty_action()
         # print(microgrid.modules.pv_spain[0].current_renewable)
+        for microgrid in microgrids.values():
+            print(microgrid)
+            # custom_action.update(
+            #     {
+            #         "battery": [
+            #             microgrid.modules.node[0].current_load
+            #             - (microgrid.modules.pv_spain[0].current_renewable * 10)
+            #         ]
+            #     }
+            # )
 
-        custom_action.update(
-            {
-                "battery": [
-                    microgrid.modules.node[0].current_load
-                    - (microgrid.modules.pv_spain[0].current_renewable * 10)
-                ]
-            }
-        )
+        # custom_action.update(
+        #     {
+        #         "battery": [
+        #             microgrid.modules.node[0].current_load
+        #             - (microgrid.modules.pv_spain[0].current_renewable * 10)
+        #         ]
+        #     }
+        # )
 
         # print(custom_action)
         microgrid.step(custom_action)
