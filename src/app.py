@@ -103,8 +103,9 @@ def generate_microgrids(c_names: list, batteries: dict, nodes: dict, renewables:
 
     for name in c_names:
         microgrid = Microgrid(
-            [batteries[name], ("pv_" + name, renewables[name]), nodes[name]]
+            [batteries[name], ("pv_source", renewables[name]), nodes[name]]
         )
+        microgrid.grid_name = name
         microgrids[name] = microgrid
 
     return microgrids
@@ -135,38 +136,18 @@ def main():
 
     # Create the empty action, which will be updated with the load values
     custom_action = microgrids["ES10"].get_empty_action()
+    print(custom_action)
+
+    #
+    # The actual simulation with updating loads, actions and logging
+    #
 
     # Retrieve the database rows based on the last timestamp
-    rows = db_load_retrieve("2025-03-25 13:00:19")
+    # rows = db_load_retrieve("2025-03-25 13:00:19")
     # print(rows)
 
-    update_grid_load(grid_dict=grid_dict, rows=rows)
+    # update_grid_load(grid_dict=grid_dict, rows=rows)
     # print(grid_dict["ES10"], grid_dict["PT02"], grid_dict["ES12"])
-
-    # spain = df_solar["ES10"]
-    # print(spain.head(24))
-
-    # Determine the final step based on your data length
-    # final_step = len(spain)
-
-    # battery = BatteryModule(
-    #     min_capacity=0,
-    #     max_capacity=100,
-    #     max_charge=50,
-    #     max_discharge=50,
-    #     efficiency=1.0,
-    #     init_soc=0.5,
-    # )
-
-    # renewable_solar = RenewableModule(time_series=spain, final_step=final_step)
-
-    # node = NodeModule(
-    #     time_series=60 * np.random.rand(final_step),
-    #     final_step=final_step,
-    #     load=grid_dict["ES10"],
-    # )
-
-    # microgrid = Microgrid([battery, ("pv_spain", renewable_solar), node])
 
     wait_time = 15.0
     starttime = time.monotonic()
@@ -178,41 +159,41 @@ def main():
 
     # microgrid.reset()
 
-    # custom_action = microgrid.get_empty_action()
+    # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = "2025-03-25 13:00:19"
 
-    print(custom_action)
+    for j in range(1):
+        rows = db_load_retrieve(timestamp)
+        print("Selected rows ", rows)
+        update_grid_load(grid_dict=grid_dict, rows=rows)
 
-    for j in range(24):
-        # custom_action = microgrid.get_empty_action()
-        # print(microgrid.modules.pv_spain[0].current_renewable)
         for microgrid in microgrids.values():
-            print(microgrid)
-            # custom_action.update(
-            #     {
-            #         "battery": [
-            #             microgrid.modules.node[0].current_load
-            #             - (microgrid.modules.pv_spain[0].current_renewable * 10)
-            #         ]
-            #     }
-            # )
+            print(microgrid.grid_name)
 
-        # custom_action.update(
-        #     {
-        #         "battery": [
-        #             microgrid.modules.node[0].current_load
-        #             - (microgrid.modules.pv_spain[0].current_renewable * 10)
-        #         ]
-        #     }
-        # )
+            microgrid.modules.node[0].update_current_load(
+                grid_dict[microgrid.grid_name]
+            )
 
-        # print(custom_action)
-        microgrid.step(custom_action)
+            print("Load ", microgrid.modules.node[0].current_load)
+            print("Grid dict load ", grid_dict[microgrid.grid_name])
+            print("Renewable ", microgrid.modules.pv_source[0].current_renewable)
 
-    df = microgrid.get_log()
+            custom_action.update(
+                {
+                    "battery": [
+                        microgrid.modules.node[0].current_load
+                        - (microgrid.modules.pv_source[0].current_renewable * 10)
+                    ]
+                }
+            )
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"logs/log-{timestamp}.csv"
-    df.to_csv(filename, index=False)
+            microgrid.step(custom_action)
+
+    # df = microgrid.get_log()
+
+    # timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    # filename = f"logs/log-{timestamp}.csv"
+    # df.to_csv(filename, index=False)
 
 
 if __name__ == "__main__":
