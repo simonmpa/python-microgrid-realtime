@@ -11,6 +11,7 @@ from pymgrid.modules import (
     RenewableModule,
     NodeModule,
 )
+import shared_state
 
 
 def get_column_names(dataframe: pd.DataFrame):
@@ -149,7 +150,7 @@ def main():
     # update_grid_load(grid_dict=grid_dict, rows=rows)
     # print(grid_dict["ES10"], grid_dict["PT02"], grid_dict["ES12"])
 
-    wait_time = 15.0
+    wait_time = 5.0
     starttime = time.monotonic()
 
     # while True:
@@ -161,13 +162,13 @@ def main():
 
     # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     timestamp = "2025-03-25 13:00:19"
-    state_of_charge = []
+    #state_of_charge = []
 
     for j in range(24):
         time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
         print("Time: ", j)
 
-        state_of_charge.clear()
+        shared_state.state_of_charge.clear()
         rows = db_load_retrieve(timestamp)
         print("Selected rows ", rows)
         update_grid_load(grid_dict=grid_dict, rows=rows)
@@ -191,10 +192,10 @@ def main():
                     ]
                 }
             )
-            state_of_charge.append(
+            shared_state.state_of_charge.append(
                 {
                     "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "SOC": microgrid.modules.battery[0].current_soc,
+                    "SOC": microgrid.modules.battery[0].soc,
                     "Current_renewable": microgrid.modules.pv_source[
                         0
                     ].current_renewable,
@@ -202,7 +203,7 @@ def main():
                     "Gridname": microgrid.grid_name,
                 }
             )
-            print(state_of_charge)
+            #print(shared_state.state_of_charge)
 
             microgrid.step(custom_action)
 

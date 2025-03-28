@@ -1,13 +1,8 @@
-import requests
-import datetime
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
+import shared_state  # Import the shared state module
 
 app = Flask(__name__)
 
-
 @app.route("/soc", methods=["GET"])
 def soc():
-    if hasattr(g, "state_of_charge"):
-        return jsonify(g.state_of_charge)
-    else:
-        return jsonify([])
+    return jsonify(shared_state.state_of_charge)
