@@ -52,25 +52,28 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
         If False, actions are clipped to the limit possible.
 
     """
-    module_type = ('node', 'fixed')
+
+    module_type = ("node", "fixed")
     # module_type = ('node', 'controllable')
-    yaml_tag = u"!NodeModule"
+    yaml_tag = "!NodeModule"
     yaml_dumper = yaml.SafeDumper
     yaml_loader = yaml.SafeLoader
 
     state_components = np.array(["node"], dtype=object)
 
-    def __init__(self,
-                 time_series,
-                 load,
-                 forecaster=None,
-                 forecast_horizon=DEFAULT_HORIZON,
-                 forecaster_increase_uncertainty=False,
-                 forecaster_relative_noise=False,
-                 initial_step=0,
-                 final_step=-1,
-                 normalized_action_bounds=(0, 1),
-                 raise_errors=False):
+    def __init__(
+        self,
+        time_series,
+        load,
+        forecaster=None,
+        forecast_horizon=DEFAULT_HORIZON,
+        forecaster_increase_uncertainty=False,
+        forecaster_relative_noise=False,
+        initial_step=0,
+        final_step=-1,
+        normalized_action_bounds=(0, 1),
+        raise_errors=False,
+    ):
         super().__init__(
             time_series,
             raise_errors=raise_errors,
@@ -82,7 +85,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
             final_step=final_step,
             normalized_action_bounds=normalized_action_bounds,
             provided_energy_name=None,
-            absorbed_energy_name='load_met'
+            absorbed_energy_name="load_met",
         )
         self._load = load
 
@@ -91,16 +94,21 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
         return _min_obs, _max_obs, np.array([]), np.array([])
 
     def update(self, external_energy_change, as_source=False, as_sink=False):
-        assert as_sink or external_energy_change == 0.0, f'step() was called with positive energy (source) for ' \
-                                                           f'module {self} but module is not a source and ' \
-                                                           f'can only be called with negative energy.'
+        assert as_sink or external_energy_change == 0.0, (
+            f"step() was called with positive energy (source) for "
+            f"module {self} but module is not a source and "
+            f"can only be called with negative energy."
+        )
 
-        info = {'absorbed_energy': self.current_load}
+        info = {"absorbed_energy": self.current_load}
 
         return 0.0, self._done(), info
 
     def sample_action(self, strict_bound=False):
         return np.array([])
+
+    def update_current_load(self, load: float):
+        self._load = load
 
     @property
     def max_consumption(self):
@@ -111,6 +119,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
     that instead of looking at the current timestep, 
     it simply fetches the latest consumption and returns that.
     """
+
     @property
     def current_load(self):
         """

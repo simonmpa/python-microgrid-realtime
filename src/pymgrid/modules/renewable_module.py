@@ -55,24 +55,27 @@ class RenewableModule(BaseTimeSeriesMicrogridModule):
         If False, actions are clipped to the limit possible.
 
     """
-    module_type = ('renewable', 'flex')
-    yaml_tag = u"!RenewableModule"
+
+    module_type = ("renewable", "flex")
+    yaml_tag = "!RenewableModule"
     yaml_loader = yaml.SafeLoader
     yaml_dumper = yaml.SafeDumper
 
     state_components = np.array(["renewable"], dtype=object)
 
-    def __init__(self,
-                 time_series,
-                 raise_errors=False,
-                 forecaster=None,
-                 forecast_horizon=DEFAULT_HORIZON,
-                 forecaster_increase_uncertainty=False,
-                 forecaster_relative_noise=False,
-                 initial_step=0,
-                 final_step=-1,
-                 normalized_action_bounds=(0, 1),
-                 provided_energy_name='renewable_used'):
+    def __init__(
+        self,
+        time_series,
+        raise_errors=False,
+        forecaster=None,
+        forecast_horizon=DEFAULT_HORIZON,
+        forecaster_increase_uncertainty=False,
+        forecaster_relative_noise=False,
+        initial_step=0,
+        final_step=-1,
+        normalized_action_bounds=(0, 1),
+        provided_energy_name="renewable_used",
+    ):
         super().__init__(
             time_series,
             raise_errors,
@@ -84,15 +87,21 @@ class RenewableModule(BaseTimeSeriesMicrogridModule):
             final_step=final_step,
             normalized_action_bounds=normalized_action_bounds,
             provided_energy_name=provided_energy_name,
-            absorbed_energy_name=None
+            absorbed_energy_name=None,
         )
 
     def update(self, external_energy_change, as_source=False, as_sink=False):
-        assert as_source, f'Class {self.__class__.__name__} can only be used as a source.'
-        assert external_energy_change <= self.current_renewable, f'Cannot provide more than {self.current_renewable}'
+        assert (
+            as_source
+        ), f"Class {self.__class__.__name__} can only be used as a source."
+        assert (
+            external_energy_change <= self.current_renewable
+        ), f"Cannot provide more than {self.current_renewable}"
 
-        info = {'provided_energy': external_energy_change,
-                'curtailment': self.current_renewable-external_energy_change}
+        info = {
+            "provided_energy": external_energy_change,
+            "curtailment": self.current_renewable - external_energy_change,
+        }
 
         return 0.0, self._done(), info
 
@@ -111,7 +120,7 @@ class RenewableModule(BaseTimeSeriesMicrogridModule):
             Renewable production.
 
         """
-        print(self._time_series[self._current_step].item(), "Current step: ", self._current_step)
+        # print(self._time_series[self._current_step].item(), "Current step: ", self._current_step)
         return self._time_series[self._current_step].item()
 
     @property
