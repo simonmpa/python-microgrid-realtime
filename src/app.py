@@ -1,8 +1,9 @@
 import numpy as np
 import time
 import sqlite3
-from datetime import datetime
 import pandas as pd
+import requests
+from datetime import datetime
 from pymgrid import Microgrid
 from pymgrid.modules import (
     GensetModule,
@@ -11,7 +12,6 @@ from pymgrid.modules import (
     RenewableModule,
     NodeModule,
 )
-import shared_state
 
 
 def get_column_names(dataframe: pd.DataFrame):
@@ -143,16 +143,10 @@ def main():
     # The actual simulation with updating loads, actions and logging
     #
 
-    # Retrieve the database rows based on the last timestamp
-    # rows = db_load_retrieve("2025-03-25 13:00:19")
-    # print(rows)
-
     # update_grid_load(grid_dict=grid_dict, rows=rows)
     # print(grid_dict["ES10"], grid_dict["PT02"], grid_dict["ES12"])
 
-    wait_time = 5.0
-    starttime = time.monotonic()
-
+   
     # while True:
     #     microgrid.step(microgrid.sample_action())
     #     print(microgrid.get_log())
@@ -162,13 +156,17 @@ def main():
 
     # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     timestamp = "2025-03-25 13:00:19"
-    #state_of_charge = []
+    wait_time = 5.0
+    starttime = time.monotonic()
+    
+    state_of_charge = []
 
-    for j in range(24):
-        time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
-        print("Time: ", j)
+    while True:
+    #for j in range(24):
+        #time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
+        time.sleep(wait_time)
 
-        shared_state.state_of_charge.clear()
+        state_of_charge.clear()
         rows = db_load_retrieve(timestamp)
         print("Selected rows ", rows)
         update_grid_load(grid_dict=grid_dict, rows=rows)
@@ -192,7 +190,10 @@ def main():
                     ]
                 }
             )
-            shared_state.state_of_charge.append(
+
+            microgrid.step(custom_action)
+
+            state_of_charge.append(
                 {
                     "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "SOC": microgrid.modules.battery[0].soc,
@@ -205,7 +206,14 @@ def main():
             )
             #print(shared_state.state_of_charge)
 
-            microgrid.step(custom_action)
+        # API STUFF
+        url = "http://127.0.0.1:5000/insert"
+        data = {"data": state_of_charge}
+        response = requests.post(url, json=data)
+        print(response.status_code, response.json())
+
+
+    # Logging and visualization of the data
 
     # df = microgrid.get_log()
     # compute_net_load
