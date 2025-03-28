@@ -75,7 +75,7 @@ def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
             time_series=60
             * np.random.rand(
                 final_step
-            ),  # Kan være denne skal fjernes eller bare være en konstant som er udregnet baseret på hvor meget strøm vi antager computeren bruger i idle.
+            ),  # Denne parameter bliver overridet på klassen af vores load, så den er ligegyldig (orker ikke at rode med at fjerne den fra klassen)
             final_step=final_step,
             load=grid_dict[name],
         )
@@ -158,7 +158,7 @@ def main():
     timestamp = "2025-03-25 13:00:19"
     wait_time = 5.0
     starttime = time.monotonic()
-    
+
     state_of_charge = []
 
     while True:
