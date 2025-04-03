@@ -9,7 +9,8 @@ cursor.execute(
              (ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                 Gridname text,
-                Load real)"""
+                Load real,
+                Completed_at DATETIME)"""
 )
 
 cursor.execute(
@@ -22,9 +23,15 @@ cursor.execute(
 
 print("Table(s) created successfully")
 
-cursor.execute("INSERT INTO microgrids (Gridname, Load) VALUES ('ES10', 7.5)")
-cursor.execute("INSERT INTO microgrids (Gridname, Load) VALUES ('PT02', 5.0)")
-cursor.execute("INSERT INTO microgrids (Gridname, Load) VALUES ('ES12', 2.5)")
+cursor.execute(
+    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('ES10', 7.5, '2025-04-03 09:05:47')"
+)
+cursor.execute(
+    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('PT02', 5.0, '2025-04-03 10:05:47')"
+)
+cursor.execute(
+    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('ES12', 2.5, '2025-04-03 10:35:47')"
+)
 
 cursor.close()
 
