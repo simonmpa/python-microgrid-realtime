@@ -21,16 +21,16 @@ def get_column_names(dataframe: pd.DataFrame):
     return column_names
 
 
-def db_load_retrieve(last_timestamp: str):
+def db_load_retrieve():
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     connection = sqlite3.connect("database.db")
     cursor = connection.execute(
         "SELECT Gridname, SUM(Load) "
         "FROM microgrids "
-        "WHERE Timestamp BETWEEN ? AND ? "
+        "WHERE ? <= Completed_at "
         "GROUP BY Gridname",
-        (last_timestamp, current_timestamp),
+        (current_timestamp,),
     )
     rows = cursor.fetchall()
     cursor.close()
@@ -45,10 +45,17 @@ def grid_initial_load(c_names: list):
     return grid_dict
 
 
-def update_grid_load(grid_dict: dict, rows: list):
-    for grid_name, load_value in rows:
-        if grid_name in grid_dict:
-            grid_dict[grid_name] = load_value
+def update_grid_load(grid_dict: dict, rows: list, default_value: float = 0.0):
+    # for grid_name, load_value in rows:
+    #     if grid_name in grid_dict:
+    #         grid_dict[grid_name] = load_value
+
+    # Convert rows list to a dictionary for quick lookup
+    row_updates = dict(rows)
+
+    # Update grid_dict in a single loop
+    for key in grid_dict.keys():
+        grid_dict[key] = row_updates.get(key, default_value)
 
 
 def generate_battery_modules(c_names: list):
@@ -155,28 +162,20 @@ def main():
     # update_grid_load(grid_dict=grid_dict, rows=rows)
     # print(grid_dict["ES10"], grid_dict["PT02"], grid_dict["ES12"])
 
-   
-    # while True:
-    #     microgrid.step(microgrid.sample_action())
-    #     print(microgrid.get_log())
-    #     time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
-
     # microgrid.reset()
 
-    # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    timestamp = "2025-03-25 13:00:19"
     wait_time = 5.0
     starttime = time.monotonic()
 
     state_of_charge = []
 
     while True:
-    #for j in range(24):
-        #time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
+        # for j in range(24):
+        # time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
         time.sleep(wait_time)
 
         state_of_charge.clear()
-        rows = db_load_retrieve(timestamp)
+        rows = db_load_retrieve()
         print("Selected rows ", rows)
         update_grid_load(grid_dict=grid_dict, rows=rows)
 
@@ -213,14 +212,13 @@ def main():
                     "Gridname": microgrid.grid_name,
                 }
             )
-            #print(shared_state.state_of_charge)
+            # print(shared_state.state_of_charge)
 
         # API STUFF
         url = "http://127.0.0.1:5000/insert"
         data = {"data": state_of_charge}
         response = requests.post(url, json=data)
         print(response.status_code, response.json())
-
 
     # Logging and visualization of the data
 
