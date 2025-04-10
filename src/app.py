@@ -3,6 +3,7 @@ import time
 import sqlite3
 import pandas as pd
 import requests
+import os
 from datetime import datetime
 from pymgrid import Microgrid
 from pymgrid.modules import (
@@ -117,11 +118,19 @@ def calculate_final_step(dataframe: pd.DataFrame):
 
     return len(dataframe) - 1
 
+def export_gridnames_to_csv(gridnames: list[str]):
+    filepath = "./data/gridnames.csv"
+
+    # Only write the file if it doesn't already exist
+    if not os.path.exists(filepath):
+        df = pd.DataFrame(gridnames, columns=["Gridname"])
+        df.to_csv(filepath, index=False)
 
 def main():
     # Load the solar data and setup variables for microgrid setup
     df_solar = pd.read_csv("data/solarPV.csv")
     column_names = get_column_names(df_solar)
+    export_gridnames_to_csv(column_names)
     print(column_names)
     final_step = calculate_final_step(df_solar)
 
