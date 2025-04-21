@@ -169,6 +169,8 @@ def main():
 
     state_of_charge = []
 
+    total_capacity_of_installations = 25.0 # kW
+
     while True:
         # for j in range(24):
         # time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
@@ -194,7 +196,7 @@ def main():
                 {
                     "battery": [
                         microgrid.modules.node[0].current_load
-                        - (microgrid.modules.pv_source[0].current_renewable * 10)
+                        - (microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations) # The current_renewable is a PECD value, so we need to multiply it with the total capacity of the installations to find out the kW value of the step.
                     ]
                 }
             )
