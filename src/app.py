@@ -5,11 +5,13 @@ import pandas as pd
 import requests
 import os
 from datetime import datetime
+from typing import Dict
 from pymgrid import Microgrid
 from pymgrid.modules import (
     GensetModule,
     BatteryModule,
     LoadModule,
+    GridModule,
     RenewableModule,
     NodeModule,
 )
@@ -38,6 +40,42 @@ def db_load_retrieve():
 
     return rows
 
+def grid_co2_emission(path: str) -> Dict[str, float]:
+    """
+    Calculates the average hourly carbon intensity (direct) for each Zone ID
+    from all CSV files in the given folder path.
+
+    Parameters:
+        path (str): The directory containing the CSV files.
+
+    Returns:
+        Dict[str, float]: A dictionary mapping each Zone ID to its average
+                          carbon intensity in gCO₂eq/kWh.
+    """
+    zone_carbon_averages = {}
+
+    for filename in os.listdir(path):
+        if filename.endswith('.csv'):
+            file_path = os.path.join(path, filename)
+            df = pd.read_csv(file_path)
+
+            # Ensure the necessary columns are present
+            if 'Zone id' in df.columns and 'Carbon intensity gCO₂eq/kWh (direct)' in df.columns and not df.empty:
+                zone_id = df.iloc[0]['Zone id']
+                avg_carbon = df['Carbon intensity gCO₂eq/kWh (direct)'].mean()
+
+                # Aggregate averages if multiple files per zone
+                if zone_id in zone_carbon_averages:
+                    zone_carbon_averages[zone_id].append(avg_carbon)
+                else:
+                    zone_carbon_averages[zone_id] = [avg_carbon]
+
+    # Final average per zone across all files
+    return {
+        zone: sum(values) / len(values)
+        for zone, values in zone_carbon_averages.items()
+    }
+
 
 def grid_initial_load(c_names: list):
     grid_dict = {name: 0.0 for name in c_names}
@@ -57,6 +95,32 @@ def update_grid_load(grid_dict: dict, rows: list, default_value: float = 0.0):
     for key in grid_dict.keys():
         grid_dict[key] = row_updates.get(key, default_value)
 
+
+def generate_grid_modules(c_names: list, co2: dict, final_step: int):
+    grid_modules = {}
+
+    for name in c_names:
+        co2_value = co2.get(name, 999)  # Use 999 if not found
+
+        import_price = np.ones(final_step)
+        export_price = np.ones(final_step)
+        co2_series = np.full(final_step, co2_value)
+
+        time_series = np.array([
+            import_price,
+            export_price,
+            co2_series
+        ]).T
+
+        grid = GridModule(
+            max_import=1000,
+            max_export=100,
+            time_series=time_series
+        )
+
+        grid_modules[name] = grid
+
+    return grid_modules
 
 def generate_battery_modules(c_names: list):
     battery_modules = {}
@@ -107,12 +171,12 @@ def generate_renewable_modules(
     return renewable_modules
 
 
-def generate_microgrids(c_names: list, batteries: dict, nodes: dict, renewables: dict):
+def generate_microgrids(c_names: list, batteries: dict, nodes: dict, renewables: dict, grids: dict):
     microgrids = {}
 
     for name in c_names:
         microgrid = Microgrid(
-            [batteries[name], ("pv_source", renewables[name]), nodes[name]]
+            [batteries[name], ("pv_source", renewables[name]), nodes[name], grids[name]]
         )
         microgrid.grid_name = name
         microgrids[name] = microgrid
@@ -145,11 +209,17 @@ def main():
     grid_dict = grid_initial_load(column_names)
     print(grid_dict)
 
+    # Test Co2 emission data
+    average_co2 = grid_co2_emission("data/emissions")
+    print("length is: ", len(average_co2))
+    print(average_co2)
+
     # Generate the battery, node, renewable and microgrid modules
     batteries = generate_battery_modules(column_names)
     nodes = generate_node_modules(column_names, final_step, grid_dict)
     renewables = generate_renewable_modules(column_names, final_step, df_solar)
-    microgrids = generate_microgrids(column_names, batteries, nodes, renewables)
+    grids = generate_grid_modules(column_names, average_co2, final_step)
+    microgrids = generate_microgrids(column_names, batteries, nodes, renewables, grids)
 
     # Create the empty action, which will be updated with the load values
     custom_action = microgrids["ES10"].get_empty_action()
