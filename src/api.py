@@ -27,15 +27,15 @@ def insert():
 def schedule_job():
     body = request.get_json()
 
-    if not body or "Gridname" not in body or "Load" not in body:
-        return jsonify({"error": "Missing Gridname or Load"}), 400
+    if not body or "Gridname" not in body or "Load" not in body or "Completed_at" not in body:
+        return jsonify({"error": "Missing Gridname or Load or Completed_at"}), 400
 
     print(body)
 
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO microgrids (Gridname, Load) VALUES (?, ?)", (body["Gridname"], body["Load"])
+        "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES (?, ?, ?)", (body["Gridname"], body["Load"], body["Completed_at"])
     )
     cursor.close()
     conn.commit()
