@@ -222,7 +222,7 @@ def main():
     microgrids = generate_microgrids(column_names, batteries, nodes, renewables, grids)
 
     # Create the empty action, which will be updated with the load values
-    custom_action = microgrids["ES10"].get_empty_action()
+    custom_action = microgrids["ES10"].get_empty_action(sample_flex_modules=False)
     print(custom_action)
 
     #
@@ -275,9 +275,6 @@ def main():
             print("Renewable ", microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations)
             print("Battery SOC ", microgrid.modules.battery[0].soc)
             print("Battery level of charge ", microgrid.modules.battery[0].current_charge)
-            #print("Grid import ", microgrid.modules.grid[0].grid_status[0])
-            #print("Grid max production ", microgrid.modules.grid[0].max_production)
-
 
             # custom_action.update(
             #     {
@@ -296,7 +293,7 @@ def main():
             )
             print("Custom action ", custom_action)
 
-            microgrid.step(custom_action)
+            microgrid.step(custom_action, normalized=False)
 
             state_of_charge.append(
                 {
