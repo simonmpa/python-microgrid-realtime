@@ -24,13 +24,13 @@ cursor.execute(
 print("Table(s) created successfully")
 
 cursor.execute(
-    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('ES10', 7.5, '2025-04-03 09:05:47')"
+    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('ES10', 7.5, '2025-04-22 09:05:47')"
 )
 cursor.execute(
-    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('PT02', 5.0, '2025-04-03 10:05:47')"
+    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('PT02', 5.0, '2025-04-22 10:05:47')"
 )
 cursor.execute(
-    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('ES12', 2.5, '2025-04-03 10:35:47')"
+    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('XK00', 2.5, '2025-04-22 10:45:47')"
 )
 
 cursor.close()

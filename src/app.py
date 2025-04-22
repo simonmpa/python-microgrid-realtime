@@ -113,8 +113,8 @@ def generate_grid_modules(c_names: list, co2: dict, final_step: int):
         ]).T
 
         grid = GridModule(
-            max_import=1000,
-            max_export=100,
+            max_import=100,
+            max_export=0,
             time_series=time_series
         )
 
@@ -128,7 +128,7 @@ def generate_battery_modules(c_names: list):
     for name in c_names:
         battery = BatteryModule(
             min_capacity=0,
-            max_capacity=100,
+            max_capacity=1000,
             max_charge=50,
             max_discharge=50,
             efficiency=1.0,
@@ -202,17 +202,17 @@ def main():
     df_solar = pd.read_csv("data/solarPV.csv")
     column_names = get_column_names(df_solar)
     export_gridnames_to_csv(column_names)
-    print(column_names)
+    #print(column_names)
     final_step = calculate_final_step(df_solar)
 
     # Create the initial grid load dictionary, with everything set to 0.0
     grid_dict = grid_initial_load(column_names)
-    print(grid_dict)
+    #print(grid_dict)
 
     # Test Co2 emission data
     average_co2 = grid_co2_emission("data/emissions")
-    print("length is: ", len(average_co2))
-    print(average_co2)
+    #print("length is: ", len(average_co2))
+    #print(average_co2)
 
     # Generate the battery, node, renewable and microgrid modules
     batteries = generate_battery_modules(column_names)
@@ -272,8 +272,12 @@ def main():
 
             print("Load ", microgrid.modules.node[0].current_load)
             print("Grid dict load ", grid_dict[microgrid.grid_name])
-            print("Renewable ", microgrid.modules.pv_source[0].current_renewable)
-            print("Grid import ", microgrid.modules.grid[0].grid_status[0])
+            print("Renewable ", microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations)
+            print("Battery SOC ", microgrid.modules.battery[0].soc)
+            print("Battery level of charge ", microgrid.modules.battery[0].current_charge)
+            #print("Grid import ", microgrid.modules.grid[0].grid_status[0])
+            #print("Grid max production ", microgrid.modules.grid[0].max_production)
+
 
             # custom_action.update(
             #     {
@@ -300,7 +304,7 @@ def main():
                     "SOC": microgrid.modules.battery[0].soc,
                     "Current_renewable": microgrid.modules.pv_source[
                         0
-                    ].current_renewable,
+                    ].current_renewable * total_capacity_of_installations,
                     "Current_load": microgrid.compute_net_load(),
                     "Gridname": microgrid.grid_name,
                 }
