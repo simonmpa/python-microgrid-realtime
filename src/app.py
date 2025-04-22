@@ -258,18 +258,39 @@ def main():
                 grid_dict[microgrid.grid_name]
             )
 
+            load = -1.0 * microgrid.modules.node[0].current_load
+            pv = microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations
+
+            net_load = load + pv
+            if net_load > 0:
+                net_load = 0.0
+
+            battery_discharge = min(-1 * net_load, microgrid.modules.battery[0].max_production)
+            net_load += battery_discharge
+
+            grid_import = min(-1*net_load, microgrid.modules.grid.item().max_production)
+
             print("Load ", microgrid.modules.node[0].current_load)
             print("Grid dict load ", grid_dict[microgrid.grid_name])
             print("Renewable ", microgrid.modules.pv_source[0].current_renewable)
+            print("Grid import ", microgrid.modules.grid[0].grid_status[0])
 
+            # custom_action.update(
+            #     {
+            #         "battery": [
+            #             microgrid.modules.node[0].current_load
+            #             - (microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations) # The current_renewable is a PECD value, so we need to multiply it with the total capacity of the installations to find out the kW value of the step.
+            #         ],
+            #         "grid": [microgrid.modules.grid[0].grid_status[0]]
+            #     }
+            # )
             custom_action.update(
                 {
-                    "battery": [
-                        microgrid.modules.node[0].current_load
-                        - (microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations) # The current_renewable is a PECD value, so we need to multiply it with the total capacity of the installations to find out the kW value of the step.
-                    ]
+                    "battery": [battery_discharge],
+                    "grid": [grid_import],
                 }
             )
+            print("Custom action ", custom_action)
 
             microgrid.step(custom_action)
 
