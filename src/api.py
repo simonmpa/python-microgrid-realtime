@@ -28,7 +28,18 @@ def schedule_job():
     body = request.get_json()
 
     if not body or "Gridname" not in body or "Load" not in body or "Completed_at" not in body:
-        return jsonify({"error": "Missing Gridname or Load or Completed_at"}), 400
+        missing = []
+        if not body:
+            missing.append("body")
+        else:
+            if "Gridname" not in body:
+                missing.append("Gridname")
+            if "Load" not in body:
+                missing.append("Load")
+            if "Completed_at" not in body:
+                missing.append("Completed_at")
+
+    return jsonify({"error": f"Missing field(s): {', '.join(missing)}"}), 400
 
     print(body)
 
