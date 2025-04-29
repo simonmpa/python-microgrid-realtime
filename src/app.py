@@ -128,7 +128,7 @@ def generate_battery_modules(c_names: list):
     for name in c_names:
         battery = BatteryModule(
             min_capacity=0,
-            max_capacity=1000,
+            max_capacity=500,
             max_charge=50,
             max_discharge=50,
             efficiency=1.0,
@@ -262,13 +262,15 @@ def main():
             pv = microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations
 
             net_load = load + pv
-            if net_load > 0:
-                net_load = 0.0
+            # if net_load > 0:
+            #     net_load = 0.0
 
             battery_discharge = min(-1 * net_load, microgrid.modules.battery[0].max_production)
+            #print("Battery discharge ", battery_discharge)
             net_load += battery_discharge
 
             grid_import = min(-1*net_load, microgrid.modules.grid.item().max_production)
+            #print("Grid import ", grid_import)
 
             print("Load ", microgrid.modules.node[0].current_load)
             print("Grid dict load ", grid_dict[microgrid.grid_name])
