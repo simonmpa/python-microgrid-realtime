@@ -304,7 +304,7 @@ def main():
                     "Current_renewable": microgrid.modules.pv_source[
                         0
                     ].current_renewable * total_capacity_of_installations,
-                    "Current_load": microgrid.compute_net_load(),
+                    "Current_load": microgrid.modules.node[0].current_load,
                     "Gridname": microgrid.grid_name,
                 }
             )
