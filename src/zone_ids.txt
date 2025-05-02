@@ -1,0 +1,1 @@
+{AL, LB, RO, LY, IS, LV, SI, TN, NO, PT, EG, BG, ME, PS, FI, DZ, ES, BE, RS, IL, DE, TR, LU, MA, GB, XK, IT, FR, DK, IE, LT, CH, HR, HU, SY, JO, BA, PL, CZ, EE, SE, CY, MK, SK, MD, GR, NL, MT, AT}
