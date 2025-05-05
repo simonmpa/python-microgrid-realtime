@@ -22,6 +22,25 @@ def get_column_names(dataframe: pd.DataFrame):
 
     return column_names
 
+def remove_aggregated_microgrids(gridnames: list[str]):
+    country_groups = {}
+
+    # Manually group grid names by their country code
+    for name in gridnames:
+        country = name[:2]
+        if country not in country_groups:
+            country_groups[country] = []
+        country_groups[country].append(name)
+
+    # Remove 'XX00' only if there are other rows in that group
+    result = []
+    for country, names in country_groups.items():
+        if f"{country}00" in names and len(names) > 1:
+            names = [name for name in names if name != f"{country}00"]
+        result.extend(names)
+
+    return result
+
 
 def db_load_retrieve():
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -78,16 +97,17 @@ def grid_co2_emission(path: str) -> Dict[str, float]:
 
 
 def grid_initial_load(c_names: list):
-    grid_dict = {name: 0.0 for name in c_names}
+    grid_dict = {}
+
+    for name in c_names:
+        for i in range(1, 7):  # 1 through 6
+            node_name = f"{name}-{i}"
+            grid_dict[node_name] = 0.125  # Default load value, 426.5 btu/h in kWh.
 
     return grid_dict
 
 
-def update_grid_load(grid_dict: dict, rows: list, default_value: float = 0.0):
-    # for grid_name, load_value in rows:
-    #     if grid_name in grid_dict:
-    #         grid_dict[grid_name] = load_value
-
+def update_grid_load(grid_dict: dict, rows: list, default_value: float = 0.125):
     # Convert rows list to a dictionary for quick lookup
     row_updates = dict(rows)
 
@@ -143,15 +163,15 @@ def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
     node_modules = {}
 
     for name in c_names:
-        node = NodeModule(
-            time_series=60
-            * np.random.rand(
-                final_step
-            ),  # Denne parameter bliver overridet på klassen af vores load, så den er ligegyldig (orker ikke at rode med at fjerne den fra klassen)
-            final_step=final_step,
-            load=grid_dict[name],
-        )
-        node_modules[name] = node
+        for i in range(1, 7):  # 1 through 6
+            node_name = f"{name}-{i}"
+            node = NodeModule(
+                time_series=60 * np.random.rand(final_step),  # Ignored anyway
+                final_step=final_step,
+                load=grid_dict[node_name],  # Use the correct full key
+                node_name=node_name,
+            )
+            node_modules[node_name] = node
 
     return node_modules
 
@@ -175,9 +195,21 @@ def generate_microgrids(c_names: list, batteries: dict, nodes: dict, renewables:
     microgrids = {}
 
     for name in c_names:
-        microgrid = Microgrid(
-            [batteries[name], ("pv_source", renewables[name]), nodes[name], grids[name]]
-        )
+        # Build the list of modules in the correct order
+        module_list = [
+            batteries[name],
+            ("pv_source", renewables[name]),
+        ]
+
+        # Add the 6 node modules
+        for i in range(1, 7):
+            module_list.append(nodes[f"{name}-{i}"])
+
+        # Add the grid module
+        module_list.append(grids[name])
+
+        # Create the microgrid
+        microgrid = Microgrid(module_list)
         microgrid.grid_name = name
         microgrids[name] = microgrid
 
@@ -200,9 +232,10 @@ def export_gridnames_to_csv(gridnames: list[str]):
 def main():
     # Load the solar data and setup variables for microgrid setup
     df_solar = pd.read_csv("data/solarPV.csv")
-    column_names = get_column_names(df_solar)
-    export_gridnames_to_csv(column_names)
+    column_names_aggregated = get_column_names(df_solar)
+    column_names = remove_aggregated_microgrids(column_names_aggregated)
     #print(column_names)
+    export_gridnames_to_csv(column_names)
     final_step = calculate_final_step(df_solar)
 
     # Create the initial grid load dictionary, with everything set to 0.0
@@ -217,9 +250,11 @@ def main():
     # Generate the battery, node, renewable and microgrid modules
     batteries = generate_battery_modules(column_names)
     nodes = generate_node_modules(column_names, final_step, grid_dict)
+    #print("amount of nodes is: ", len(nodes))
     renewables = generate_renewable_modules(column_names, final_step, df_solar)
     grids = generate_grid_modules(column_names, average_co2, final_step)
     microgrids = generate_microgrids(column_names, batteries, nodes, renewables, grids)
+    #print("amount of microgrids is: ", len(microgrids))
 
     # Create the empty action, which will be updated with the load values
     custom_action = microgrids["ES10"].get_empty_action(sample_flex_modules=False)
@@ -252,13 +287,19 @@ def main():
         update_grid_load(grid_dict=grid_dict, rows=rows)
 
         for microgrid in microgrids.values():
-            print(microgrid.grid_name)
+            print("Microgrid Name: ", microgrid.grid_name)
 
-            microgrid.modules.node[0].update_current_load(
-                grid_dict[microgrid.grid_name]
-            )
+            load = 0.0
+            net_load = 0.0
 
-            load = -1.0 * microgrid.modules.node[0].current_load
+            for i in range(0, 6):
+                #print(microgrid.modules.node[i].node_name)
+                microgrid.modules.node[i].update_current_load(
+                    grid_dict[microgrid.modules.node[i].node_name]
+                )
+
+                load += -1.0 * microgrid.modules.node[0].current_load
+            
             pv = microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations
 
             net_load = load + pv
@@ -272,8 +313,13 @@ def main():
             grid_import = min(-1*net_load, microgrid.modules.grid.item().max_production)
             #print("Grid import ", grid_import)
 
-            print("Load ", microgrid.modules.node[0].current_load)
-            print("Grid dict load ", grid_dict[microgrid.grid_name])
+            # Total load of all nodes in the microgrid
+            total_load = microgrid.modules.node[0].current_load + microgrid.modules.node[1].current_load + microgrid.modules.node[2].current_load + microgrid.modules.node[3].current_load + microgrid.modules.node[4].current_load + microgrid.modules.node[5].current_load
+
+            total_grid_dict_load = grid_dict[microgrid.modules.node[0].node_name] + grid_dict[microgrid.modules.node[1].node_name] + grid_dict[microgrid.modules.node[2].node_name] + grid_dict[microgrid.modules.node[3].node_name] + grid_dict[microgrid.modules.node[4].node_name] + grid_dict[microgrid.modules.node[5].node_name]
+
+            print("Load ", total_load)
+            print("Grid dict load ", total_grid_dict_load)
             print("Renewable ", microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations)
             print("Battery SOC ", microgrid.modules.battery[0].soc)
             print("Battery level of charge ", microgrid.modules.battery[0].current_charge)
@@ -304,7 +350,7 @@ def main():
                     "Current_renewable": microgrid.modules.pv_source[
                         0
                     ].current_renewable * total_capacity_of_installations,
-                    "Current_load": microgrid.modules.node[0].current_load,
+                    "Current_load": total_load,
                     "Gridname": microgrid.grid_name,
                 }
             )
