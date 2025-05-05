@@ -65,6 +65,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
         self,
         time_series,
         load,
+        node_name,
         forecaster=None,
         forecast_horizon=DEFAULT_HORIZON,
         forecaster_increase_uncertainty=False,
@@ -88,6 +89,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
             absorbed_energy_name="load_met",
         )
         self._load = load
+        self._node_name = node_name
 
     def _get_bounds(self):
         _min_obs, _max_obs, _, _ = super()._get_bounds()
@@ -138,3 +140,7 @@ class NodeModule(BaseTimeSeriesMicrogridModule):
     @property
     def is_sink(self):
         return True
+    
+    @property
+    def node_name(self):
+        return self._node_name
