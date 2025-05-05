@@ -22,6 +22,25 @@ def get_column_names(dataframe: pd.DataFrame):
 
     return column_names
 
+def remove_aggregated_microgrids(gridnames: list[str]):
+    country_groups = {}
+
+    # Manually group grid names by their country code
+    for name in gridnames:
+        country = name[:2]
+        if country not in country_groups:
+            country_groups[country] = []
+        country_groups[country].append(name)
+
+    # Remove 'XX00' only if there are other rows in that group
+    result = []
+    for country, names in country_groups.items():
+        if f"{country}00" in names and len(names) > 1:
+            names = [name for name in names if name != f"{country}00"]
+        result.extend(names)
+
+    return result
+
 
 def db_load_retrieve():
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -200,9 +219,10 @@ def export_gridnames_to_csv(gridnames: list[str]):
 def main():
     # Load the solar data and setup variables for microgrid setup
     df_solar = pd.read_csv("data/solarPV.csv")
-    column_names = get_column_names(df_solar)
-    export_gridnames_to_csv(column_names)
+    column_names_aggregated = get_column_names(df_solar)
+    column_names = remove_aggregated_microgrids(column_names_aggregated)
     #print(column_names)
+    export_gridnames_to_csv(column_names)
     final_step = calculate_final_step(df_solar)
 
     # Create the initial grid load dictionary, with everything set to 0.0
