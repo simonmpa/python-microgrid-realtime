@@ -254,7 +254,7 @@ def main():
     renewables = generate_renewable_modules(column_names, final_step, df_solar)
     grids = generate_grid_modules(column_names, average_co2, final_step)
     microgrids = generate_microgrids(column_names, batteries, nodes, renewables, grids)
-    #print("amount of microgrids is: ", len(microgrids))
+    print("amount of microgrids is: ", len(microgrids))
 
     # Create the empty action, which will be updated with the load values
     custom_action = microgrids["ES10"].get_empty_action(sample_flex_modules=False)
