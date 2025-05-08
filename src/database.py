@@ -8,8 +8,8 @@ cursor.execute(
     """CREATE TABLE IF NOT EXISTS microgrids
              (ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                Gridname text,
-                Load real,
+                Node text,
+                CPU real,
                 Completed_at DATETIME)"""
 )
 
@@ -17,21 +17,11 @@ cursor.execute(
     """CREATE TABLE IF NOT EXISTS state_of_charge
              (ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                Gridname text,
+                Node text,
                 SOC real)"""
 )
 
 print("Table(s) created successfully")
-
-cursor.execute(
-    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('ES10', 7.5, '2025-04-22 09:05:47')"
-)
-cursor.execute(
-    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('PT02', 5.0, '2025-04-22 10:05:47')"
-)
-cursor.execute(
-    "INSERT INTO microgrids (Gridname, Load, Completed_at) VALUES ('XK00', 2.5, '2025-04-22 10:45:47')"
-)
 
 cursor.close()
 
