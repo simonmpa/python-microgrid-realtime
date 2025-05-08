@@ -48,10 +48,10 @@ def db_load_retrieve():
 
     connection = sqlite3.connect("database.db")
     cursor = connection.execute(
-        "SELECT Gridname, SUM(Load) "
+        "SELECT Node, SUM(CPU) "
         "FROM microgrids "
         "WHERE ? <= Completed_at "
-        "GROUP BY Gridname",
+        "GROUP BY Node",
         (current_timestamp,),
     )
     rows = cursor.fetchall()
@@ -154,7 +154,7 @@ def generate_grid_modules(c_names: list, co2: dict, final_step: int):
 
         time_series = np.array([import_price, export_price, co2_series]).T
 
-        grid = GridModule(max_import=100, max_export=0, time_series=time_series)
+        grid = GridModule(max_import=100000, max_export=0, time_series=time_series)
 
         grid_modules[name] = grid
 
@@ -168,8 +168,8 @@ def generate_battery_modules(c_names: list):
         battery = BatteryModule(
             min_capacity=0,
             max_capacity=500,
-            max_charge=50,
-            max_discharge=50,
+            max_charge=100,
+            max_discharge=100,
             efficiency=1.0,
             init_soc=0.5,
         )
@@ -292,12 +292,12 @@ def main():
 
     # microgrid.reset()
 
-    wait_time = 5.0
+    wait_time = 10.0
     starttime = time.monotonic()
 
     state_of_charge = []
 
-    total_capacity_of_installations = 25.0  # kW
+    total_capacity_of_installations = 250.0  # kW
 
     while True:
         # for j in range(24):
@@ -322,7 +322,7 @@ def main():
                     grid_dict[microgrid.modules.node[i].node_name]
                 )
 
-                load += -1.0 * microgrid.modules.node[0].current_load
+                load += -1.0 * microgrid.modules.node[i].current_load
 
             pv = (
                 microgrid.modules.pv_source[0].current_renewable
