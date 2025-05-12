@@ -61,7 +61,6 @@ def schedule_job():
         return jsonify({"error": f"Missing field(s): {', '.join(missing)}"}), 400
 
     try:
-        # Try to parse the input string into a datetime object
         completed_at_dt = datetime.fromisoformat(body["Completed_at"])
     except ValueError:
         return (
@@ -80,7 +79,7 @@ def schedule_job():
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO microgrids (Node, CPU, Completed_at) VALUES (?, ?, ?)",
-        (body["Node"], body["CPU"], completed_at_str),
+        (body["Node"].upper(), body["CPU"], completed_at_str),
     )
     cursor.close()
     conn.commit()
