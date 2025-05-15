@@ -292,7 +292,9 @@ def main():
 
     # microgrid.reset()
 
-    wait_time = 120  # seconds to make the simulation 30x times faster than real time.
+    wait_time = (
+        120  # 120 seconds to make the simulation 30x times faster than real time.
+    )
     starttime = time.monotonic()
 
     state_of_charge = []
@@ -393,6 +395,11 @@ def main():
             print("Custom action ", custom_action)
 
             microgrid.step(custom_action, normalized=False)
+
+            log = microgrid.get_log()
+            filename = f"logs/{microgrid.grid_name}.csv"
+            file_exists = os.path.isfile(filename)
+            log.to_csv(filename, mode="a", header=not file_exists, index=False)
 
             state_of_charge.append(
                 {
