@@ -167,10 +167,10 @@ def generate_battery_modules(c_names: list):
     for name in c_names:
         battery = BatteryModule(
             min_capacity=0,
-            max_capacity=500,
-            max_charge=100,
-            max_discharge=100,
-            efficiency=1.0,
+            max_capacity=23296.7,  # 101.29 rougly 23296.7 Wh or 23.3 kWh
+            max_charge=2329.67,
+            max_discharge=2329.67,
+            efficiency=0.9,
             init_soc=0.5,
         )
         battery_modules[name] = battery
@@ -297,7 +297,9 @@ def main():
 
     state_of_charge = []
 
-    total_capacity_of_installations = 250.0  # kW
+    total_capacity_of_installations = (
+        1800.0  # W, such that it cannot fully cover the load of nodes at full capacity
+    )
 
     while True:
         # for j in range(24):
