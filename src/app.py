@@ -107,7 +107,7 @@ def grid_initial_load(c_names: list):
     for name in c_names:
         for i in range(1, 7):  # 1 through 6
             node_name = f"{name}-{i}"
-            grid_dict[node_name] = 0.125  # Default load value, 426.5 btu/h in kWh.
+            grid_dict[node_name] = 120  # Default load value, 426.5 btu/h in kWh.
 
     return grid_dict
 
