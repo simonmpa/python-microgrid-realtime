@@ -292,7 +292,7 @@ def main():
 
     # microgrid.reset()
 
-    wait_time = 10.0
+    wait_time = 120  # seconds to make the simulation 30x times faster than real time.
     starttime = time.monotonic()
 
     state_of_charge = []
