@@ -167,7 +167,7 @@ def generate_battery_modules(c_names: list):
     for name in c_names:
         battery = BatteryModule(
             min_capacity=0,
-            max_capacity=23296.7,  # 101.29 rougly 23296.7 Wh or 23.3 kWh
+            max_capacity=23296.7,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
             max_charge=2329.67,
             max_discharge=2329.67,
             efficiency=0.9,
