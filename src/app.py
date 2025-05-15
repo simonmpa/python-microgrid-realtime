@@ -304,8 +304,6 @@ def main():
     while True:
         # for j in range(24):
         # time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
-        time.sleep(wait_time)
-
         state_of_charge.clear()
         rows = db_load_retrieve()
         print("Selected rows ", rows)
@@ -415,6 +413,7 @@ def main():
         data = {"data": state_of_charge}
         response = requests.post(url, json=data)
         print(response.status_code, response.json())
+        time.sleep(wait_time)
 
     # Logging and visualization of the data
 
