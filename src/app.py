@@ -142,19 +142,20 @@ def update_grid_load(grid_dict: dict, rows: list, default_value: float = 120):
             grid_dict[key] = default_value
 
 
-def generate_grid_modules(c_names: list, co2: dict, final_step: int):
+def generate_grid_modules(c_names: list, co2: dict, final_step: int, electricity_price: dict):
     grid_modules = {}
 
     for name in c_names:
         co2_value = co2.get(name, 999)  # Use 999 if not found
+        electricity_value = electricity_price.get(name, 999)  # Use 999 if not found
 
-        import_price = np.ones(final_step)
-        export_price = np.ones(final_step)
+        import_price = np.full(final_step, electricity_value)
+        export_price = np.full(final_step, electricity_value * 0.9)  # Sell back to the grid for 90% of the import price
         co2_series = np.full(final_step, co2_value)
 
         time_series = np.array([import_price, export_price, co2_series]).T
 
-        grid = GridModule(max_import=100000, max_export=0, time_series=time_series)
+        grid = GridModule(max_import=100000, max_export=100000, time_series=time_series)
 
         grid_modules[name] = grid
 
@@ -251,6 +252,26 @@ def export_gridnames_to_csv(gridnames: list[str]):
         df = pd.DataFrame(gridnames, columns=["Gridname"])
         df.to_csv(filepath, index=False)
 
+def electricity_price(path: str, gridnames: list[str]):
+    """
+    Calculates the average electricity price in Euro for each grid name from a CSV file.
+    """
+    # Load and clean data
+    df = pd.read_csv(path, usecols=["geo", "OBS_VALUE"])
+    #df = df.dropna(subset=["OBS_VALUE"])
+
+    df["OBS_VALUE"] = pd.to_numeric(df["OBS_VALUE"], errors="coerce")
+    df = df.dropna(subset=["OBS_VALUE"])
+
+    df["price_per_wh"] = df["OBS_VALUE"] / 1000.0 # Convert from kWh to Wh 
+
+    country_avg = df.groupby("geo")["price_per_wh"].mean()
+
+    overall_avg = df["price_per_wh"].mean()
+
+    result = {code: country_avg.get(code, overall_avg) for code in gridnames}
+
+    return result
 
 def main():
     # Load the solar data and setup variables for microgrid setup
@@ -270,12 +291,16 @@ def main():
     # print("length is: ", len(average_co2))
     # print(average_co2)
 
+    # Create dict for electricity price
+    electricity_price_dict = electricity_price("data/estat_nrg_pc_204.csv", column_names)
+    #print(electricity_price_dict)
+
     # Generate the battery, node, renewable and microgrid modules
     batteries = generate_battery_modules(column_names)
     nodes = generate_node_modules(column_names, final_step, grid_dict)
     # print("amount of nodes is: ", len(nodes))
     renewables = generate_renewable_modules(column_names, final_step, df_solar)
-    grids = generate_grid_modules(column_names, average_co2, final_step)
+    grids = generate_grid_modules(column_names, average_co2, final_step, electricity_price_dict)
     microgrids = generate_microgrids(column_names, batteries, nodes, renewables, grids)
     print("amount of microgrids is: ", len(microgrids))
 
@@ -398,6 +423,7 @@ def main():
 
             log = microgrid.get_log()
             filename = f"logs/{microgrid.grid_name}.csv"
+            os.makedirs("logs", exist_ok=True)
             file_exists = os.path.isfile(filename)
             log.to_csv(filename, mode="a", header=not file_exists, index=False)
 
