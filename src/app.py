@@ -299,13 +299,9 @@ def main():
 
     state_of_charge = []
 
-<<<<<<< HEAD
-    total_capacity_of_installations = 250.0  # Watts
-=======
     total_capacity_of_installations = (
         1800.0  # W, such that it cannot fully cover the load of nodes at full capacity
     )
->>>>>>> c88d7f0d35eebf0b7bfa2739915caa47b4952cb5
 
     while True:
         # for j in range(24):
