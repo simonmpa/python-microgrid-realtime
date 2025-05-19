@@ -187,8 +187,8 @@ def generate_battery_modules(c_names: list):
         battery = BatteryModule(
             min_capacity=0,
             max_capacity=23296.7,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
-            max_charge=2329.67,
-            max_discharge=2329.67,
+            max_charge=2329.67, # can maximum charge 10% of the battery capacity in 1 step
+            max_discharge=2329.67, # can maximum discharge 10% of the battery capacity in 1 step
             efficiency=0.9,
             init_soc=0.5,
         )
@@ -449,11 +449,10 @@ def main():
 
             microgrid.step(custom_action, normalized=False)
 
-            log = microgrid.get_log()
+            log = microgrid.get_log(as_frame=True, drop_forecasts=True)
             filename = f"logs/{microgrid.grid_name}.csv"
             os.makedirs("logs", exist_ok=True)
-            file_exists = os.path.isfile(filename)
-            log.to_csv(filename, mode="a", header=not file_exists, index=False)
+            log.to_csv(filename, mode="w", header=True, index=False)
 
             state_of_charge.append(
                 {
