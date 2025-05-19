@@ -18,12 +18,18 @@ from pymgrid.modules import (
 
 
 def get_column_names(dataframe: pd.DataFrame):
+    """
+    Gets the column names from the dataframe, which is the grid names.
+    """
     column_names = dataframe.columns[1:].tolist()
 
     return column_names
 
 
 def remove_aggregated_microgrids(gridnames: list[str]):
+    """
+    Remove the 'XX00' grid names from the list if there are other grid names in the same country.
+    """
     country_groups = {}
 
     # Manually group grid names by their country code
@@ -44,6 +50,10 @@ def remove_aggregated_microgrids(gridnames: list[str]):
 
 
 def db_load_retrieve():
+    """
+    Retrieve the CPU load from the database for each node in the microgrid.
+    Only retrieves CPU loads that are not completed yet.
+    """
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     connection = sqlite3.connect("database.db")
@@ -65,13 +75,6 @@ def grid_co2_emission(path: str) -> Dict[str, float]:
     """
     Calculates the average hourly carbon intensity (direct) for each Zone ID
     from all CSV files in the given folder path.
-
-    Parameters:
-        path (str): The directory containing the CSV files.
-
-    Returns:
-        Dict[str, float]: A dictionary mapping each Zone ID to its average
-                          carbon intensity in gCO₂eq/kWh.
     """
     zone_carbon_averages = {}
 
@@ -102,6 +105,10 @@ def grid_co2_emission(path: str) -> Dict[str, float]:
 
 
 def grid_initial_load(c_names: list):
+    """
+    Create a dictionary with the initial load for each node in the grid.
+    The default load value is set to 120 W based on the Dell EIPT.
+    """
     grid_dict = {}
 
     for name in c_names:
@@ -113,8 +120,10 @@ def grid_initial_load(c_names: list):
 
 
 def update_grid_load(grid_dict: dict, rows: list, default_value: float = 120):
-    # The corresponding CPU load in watts for each percentage of load
-    # Based on the DELL EIPT for a default setting PowerEdge R660 Server with no additional selected processor and 4 x 32 gb RAM.
+    """ 
+    The corresponding CPU load in watts for each percentage of load.
+    Based on the DELL EIPT for a default setting PowerEdge R660 Server with no additional selected processor and 4 x 32 gb RAM.
+    """
     cpu_load_watts = {
         "10": 118,
         "20": 180,
@@ -143,6 +152,12 @@ def update_grid_load(grid_dict: dict, rows: list, default_value: float = 120):
 
 
 def generate_grid_modules(c_names: list, co2: dict, final_step: int, electricity_price: dict):
+    """
+    Generate the grid modules for each grid name in the c_names list.
+    It uses the co2 dict to get the CO2 value for each grid name.
+    The default value is set to 999 if the grid name is not found in the co2 dict.
+    The electricity price is set based on the electricity_price dict and is 999 if not found since it should not be able to fail.
+    """
     grid_modules = {}
 
     for name in c_names:
@@ -163,6 +178,9 @@ def generate_grid_modules(c_names: list, co2: dict, final_step: int, electricity
 
 
 def generate_battery_modules(c_names: list):
+    """
+    Generate the battery modules for each grid name in the c_names list.
+    """
     battery_modules = {}
 
     for name in c_names:
@@ -180,6 +198,10 @@ def generate_battery_modules(c_names: list):
 
 
 def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
+    """
+    Generate the node modules for each grid name in the c_names list.
+    The load is set to the value in the grid_dict for each node.
+    """
     node_modules = {}
 
     for name in c_names:
@@ -199,6 +221,10 @@ def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
 def generate_renewable_modules(
     c_names: list, final_step: int, renewable_data: pd.DataFrame
 ):
+    """
+    Generate the renewable modules for each grid name in the c_names list.
+    The renewable data is a dataframe with the renewable data for each grid name, which is a utilization value between 0-100%.
+    """
     renewable_modules = {}
 
     for name in c_names:
@@ -245,9 +271,11 @@ def calculate_final_step(dataframe: pd.DataFrame):
 
 
 def export_gridnames_to_csv(gridnames: list[str]):
+    """
+    Export the grid names to a CSV file.
+    """
     filepath = "./data/gridnames.csv"
 
-    # Only write the file if it doesn't already exist
     if not os.path.exists(filepath):
         df = pd.DataFrame(gridnames, columns=["Gridname"])
         df.to_csv(filepath, index=False)
@@ -256,14 +284,12 @@ def electricity_price(path: str, gridnames: list[str]):
     """
     Calculates the average electricity price in Euro for each grid name from a CSV file.
     """
-    # Load and clean data
     df = pd.read_csv(path, usecols=["geo", "OBS_VALUE"])
-    #df = df.dropna(subset=["OBS_VALUE"])
 
     df["OBS_VALUE"] = pd.to_numeric(df["OBS_VALUE"], errors="coerce")
     df = df.dropna(subset=["OBS_VALUE"])
 
-    df["price_per_wh"] = df["OBS_VALUE"] / 1000.0 # Convert from kWh to Wh 
+    df["price_per_wh"] = df["OBS_VALUE"] / 1000.0 # Convert from kWh to Wh
 
     country_avg = df.groupby("geo")["price_per_wh"].mean()
 
