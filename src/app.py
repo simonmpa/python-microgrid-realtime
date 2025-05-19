@@ -107,7 +107,7 @@ def grid_initial_load(c_names: list):
     for name in c_names:
         for i in range(1, 7):  # 1 through 6
             node_name = f"{name}-{i}"
-            grid_dict[node_name] = 0.125  # Default load value, 426.5 btu/h in kWh.
+            grid_dict[node_name] = 120  # Default load value, 120 W.
 
     return grid_dict
 
@@ -167,10 +167,10 @@ def generate_battery_modules(c_names: list):
     for name in c_names:
         battery = BatteryModule(
             min_capacity=0,
-            max_capacity=500,
-            max_charge=100,
-            max_discharge=100,
-            efficiency=1.0,
+            max_capacity=23296.7,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
+            max_charge=2329.67,
+            max_discharge=2329.67,
+            efficiency=0.9,
             init_soc=0.5,
         )
         battery_modules[name] = battery
@@ -292,18 +292,24 @@ def main():
 
     # microgrid.reset()
 
-    wait_time = 10.0
+    wait_time = (
+        120  # 120 seconds to make the simulation 30x times faster than real time.
+    )
     starttime = time.monotonic()
 
     state_of_charge = []
 
+<<<<<<< HEAD
     total_capacity_of_installations = 250.0  # Watts
+=======
+    total_capacity_of_installations = (
+        1800.0  # W, such that it cannot fully cover the load of nodes at full capacity
+    )
+>>>>>>> c88d7f0d35eebf0b7bfa2739915caa47b4952cb5
 
     while True:
         # for j in range(24):
         # time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
-        time.sleep(wait_time)
-
         state_of_charge.clear()
         rows = db_load_retrieve()
         print("Selected rows ", rows)
@@ -394,6 +400,11 @@ def main():
 
             microgrid.step(custom_action, normalized=False)
 
+            log = microgrid.get_log()
+            filename = f"logs/{microgrid.grid_name}.csv"
+            file_exists = os.path.isfile(filename)
+            log.to_csv(filename, mode="a", header=not file_exists, index=False)
+
             state_of_charge.append(
                 {
                     "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -413,6 +424,7 @@ def main():
         data = {"data": state_of_charge}
         response = requests.post(url, json=data)
         print(response.status_code, response.json())
+        time.sleep(wait_time)
 
     # Logging and visualization of the data
 
