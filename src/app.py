@@ -136,15 +136,15 @@ def update_grid_load(grid_dict: dict, rows: list, default_value: float = 120):
         "90": 362,
         "100": 364,
     }
-    # Convert rows list to a dictionary for quick lookup
+
     row_updates = dict(rows)
 
     for key in grid_dict.keys():
         raw_value = row_updates.get(key, None)
 
         if raw_value is not None:
-            # Round up to nearest 10, cap at 100
-            rounded = min(((int(raw_value) + 9) // 10) * 10, 100)
+            # Round to nearest 10, cap at 100
+            rounded = min(round(float(raw_value) / 10) * 10, 100) # If the CPU load is closer to 0%, set to default_value and if it is closer to 10% set to 10%.
             watt_value = cpu_load_watts.get(str(rounded), default_value)
             grid_dict[key] = watt_value
         else:
@@ -362,6 +362,8 @@ def main():
         print("Selected rows ", rows)
         print("Grid dict before update ", grid_dict)
         update_grid_load(grid_dict=grid_dict, rows=rows)
+        # print("------------------------------------------------------------")
+        # print("Grid dict after update ", grid_dict)
 
         for microgrid in microgrids.values():
             print("Microgrid Name: ", microgrid.grid_name)
