@@ -297,7 +297,7 @@ def main():
 
     state_of_charge = []
 
-    total_capacity_of_installations = 250.0  # kW
+    total_capacity_of_installations = 250.0  # Watts
 
     while True:
         # for j in range(24):
