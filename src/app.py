@@ -162,7 +162,7 @@ def generate_grid_modules(c_names: list, co2: dict, final_step: int, electricity
 
     for name in c_names:
         co2_value = co2.get(name, 999)  # Use 999 if not found
-        electricity_value = electricity_price.get(name, 999)  # Use 999 if not found
+        electricity_value = electricity_price.get(name, 888)  # Use 999 if not found
 
         import_price = np.full(final_step, electricity_value)
         export_price = np.full(final_step, electricity_value * 0.9)  # Sell back to the grid for 90% of the import price
@@ -344,7 +344,7 @@ def main():
     # microgrid.reset()
 
     wait_time = (
-        120  # 120 seconds to make the simulation 30x times faster than real time.
+        10  # 120 seconds to make the simulation 30x times faster than real time.
     )
     starttime = time.monotonic()
 
