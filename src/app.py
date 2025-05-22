@@ -344,14 +344,15 @@ def main():
     # microgrid.reset()
 
     wait_time = (
-        120  # 120 seconds to make the simulation 30x times faster than real time.
+        300  # 120 seconds to make the simulation 30x times faster than real time.
     )
     starttime = time.monotonic()
 
     state_of_charge = []
 
     total_capacity_of_installations = (
-        1800.0  # W, such that it cannot fully cover the load of nodes at full capacity
+        #1800.0  # W, such that it cannot fully cover the load of nodes at full capacity
+        3600.0  # W, such that it cannot fully cover the load of nodes at full capacity
     )
 
     while True:
@@ -360,7 +361,7 @@ def main():
         state_of_charge.clear()
         rows = db_load_retrieve()
         print("Selected rows ", rows)
-        print("Grid dict before update ", grid_dict)
+        #print("Grid dict before update ", grid_dict)
         update_grid_load(grid_dict=grid_dict, rows=rows)
         # print("------------------------------------------------------------")
         # print("Grid dict after update ", grid_dict)
