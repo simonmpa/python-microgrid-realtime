@@ -299,9 +299,41 @@ def electricity_price(path: str, gridnames: list[str]):
 
     return result
 
+def prune_and_forward_fill_solar_data(dataframe: pd.DataFrame):
+    # Load the CSV file with datetime parsing
+    df = dataframe
+
+    # Set 'Time' as index
+    df.set_index("Time", inplace=True)
+    df.sort_index(inplace=True)  # Make sure the index is sorted for slicing
+
+    # Slice only the 2016–2019 range
+    df_pruned = df.loc["2016-01-01":"2019-12-31"]
+
+    # Create new 10-minute interval index
+    new_index = pd.date_range(start="2016-01-01", end="2019-12-31 23:50:00", freq="10T")
+
+    # Reindex and forward-fill
+    df_10min = df_pruned.reindex(new_index)
+    df_10min.ffill(inplace=True)
+
+    # Reset index to make 'Time' a column again
+    df_10min.reset_index(inplace=True)
+    df_10min.rename(columns={"index": "Time"}, inplace=True)
+
+    # Format 'Time' column back to 'dd-MMM-yyyy HH:MM:SS' format (e.g., 31-Dec-2019 23:50:00)
+    df_10min["Time"] = df_10min["Time"].dt.strftime("%d-%b-%Y %H:%M:%S")
+
+    # Save to a new CSV file
+    df_10min.to_csv("data/solarPV_10min.csv", index=False)
+
+    return df_10min
+
 def main():
     # Load the solar data and setup variables for microgrid setup
-    df_solar = pd.read_csv("data/solarPV.csv")
+    df = pd.read_csv("data/solarPV.csv", dayfirst=True, parse_dates=["Time"])
+    df_solar = prune_and_forward_fill_solar_data(df)
+    #df_solar = pd.read_csv("data/solarPV.csv")
     column_names_aggregated = get_column_names(df_solar)
     column_names = remove_aggregated_microgrids(column_names_aggregated)
     # print(column_names)
