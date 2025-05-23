@@ -490,7 +490,7 @@ def main():
             state_of_charge.append(
                 {
                     "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "SOC": microgrid.modules.battery[0].soc,
+                    "SOC": microgrid.modules.battery[0].soc * 100,
                     "Current_renewable": microgrid.modules.pv_source[
                         0
                     ].current_renewable
