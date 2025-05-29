@@ -6,6 +6,8 @@ app = Flask(__name__)
 
 conn = sqlite3.connect("database.db")
 
+count = 0
+
 state_object = None
 
 
@@ -39,6 +41,7 @@ def delete_db():
 
 @app.route("/schedule-job", methods=["POST"])
 def schedule_job():
+    global count
     body = request.get_json()
 
     if (
@@ -84,5 +87,8 @@ def schedule_job():
     cursor.close()
     conn.commit()
     conn.close()
+
+    print("Inserted number ", count)
+    count += 1
 
     return jsonify({"message": "Scheduled!"}), 201
