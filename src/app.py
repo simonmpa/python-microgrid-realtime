@@ -251,7 +251,8 @@ def generate_microgrids(
         ]
 
         # Add the 6 node modules
-        for i in range(1, 7):
+        # for i in range(1, 7):
+        for i in range(1, 3):
             module_list.append(nodes[f"{name}-{i}"])
 
         # Add the grid module
