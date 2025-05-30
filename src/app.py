@@ -463,19 +463,19 @@ def main():
             total_load = (
                 microgrid.modules.node[0].current_load
                 + microgrid.modules.node[1].current_load
-                + microgrid.modules.node[2].current_load
-                + microgrid.modules.node[3].current_load
-                + microgrid.modules.node[4].current_load
-                + microgrid.modules.node[5].current_load
+                # + microgrid.modules.node[2].current_load
+                # + microgrid.modules.node[3].current_load
+                # + microgrid.modules.node[4].current_load
+                # + microgrid.modules.node[5].current_load
             )
 
             total_grid_dict_load = (
                 grid_dict[microgrid.modules.node[0].node_name]
                 + grid_dict[microgrid.modules.node[1].node_name]
-                + grid_dict[microgrid.modules.node[2].node_name]
-                + grid_dict[microgrid.modules.node[3].node_name]
-                + grid_dict[microgrid.modules.node[4].node_name]
-                + grid_dict[microgrid.modules.node[5].node_name]
+                # + grid_dict[microgrid.modules.node[2].node_name]
+                # + grid_dict[microgrid.modules.node[3].node_name]
+                # + grid_dict[microgrid.modules.node[4].node_name]
+                # + grid_dict[microgrid.modules.node[5].node_name]
             )
 
             print("Load ", total_load) 
