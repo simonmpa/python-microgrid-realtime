@@ -205,7 +205,8 @@ def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
     node_modules = {}
 
     for name in c_names:
-        for i in range(1, 7):  # 1 through 6
+        #for i in range(1, 7):  # 1 through 6
+        for i in range (1, 3):
             node_name = f"{name}-{i}"
             node = NodeModule(
                 time_series=60 * np.random.rand(final_step),  # Ignored anyway
@@ -250,7 +251,8 @@ def generate_microgrids(
         ]
 
         # Add the 6 node modules
-        for i in range(1, 7):
+        #for i in range(1, 7):
+        for i in range(1, 3):
             module_list.append(nodes[f"{name}-{i}"])
 
         # Add the grid module
@@ -404,7 +406,8 @@ def main():
             load = 0.0
             net_load = 0.0
             
-            for i in range(0, 6):
+            #for i in range(0, 6):
+            for i in range(0, 2):
                 # print(microgrid.modules.node[i].node_name) # Original commented-out print
                 microgrid.modules.node[i].update_current_load(
                     grid_dict[microgrid.modules.node[i].node_name]
