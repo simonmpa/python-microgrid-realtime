@@ -186,10 +186,10 @@ def generate_battery_modules(c_names: list):
     for name in c_names:
         battery = BatteryModule(
             min_capacity=0,
-            max_capacity=23296.7,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
-            max_charge=2329.67, # can maximum charge 10% of the battery capacity in 1 step
-            max_discharge=2329.67, # can maximum discharge 10% of the battery capacity in 1 step
-            efficiency=0.9,
+            max_capacity=23296.7 / 3,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
+            max_charge=2329.67 / 3, # can maximum charge 10% of the battery capacity in 1 step
+            max_discharge=2329.67 / 3, # can maximum discharge 10% of the battery capacity in 1 step
+            efficiency=1.0,
             init_soc=0.5,
         )
         battery_modules[name] = battery
@@ -376,7 +376,7 @@ def main():
     # microgrid.reset()
 
     wait_time = (
-        120  # 120 seconds to make the simulation 30x times faster than real time.
+        1  # 120 seconds to make the simulation 30x times faster than real time.
     )
     starttime = time.monotonic()
 
@@ -430,9 +430,9 @@ def main():
             grid_import = min(
                 -1 * net_load, microgrid.modules.grid.item().max_production
             )
-            # grid_export = max(
-            #     net_load, microgrid.modules.grid.item().max_consumption
-            # )
+            grid_export = max(
+                -1 * net_load, microgrid.modules.grid.item().max_consumption
+            )
             # print("Grid import ", grid_import)
 
             # Total load of all nodes in the microgrid
