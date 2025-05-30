@@ -430,6 +430,9 @@ def main():
             grid_import = min(
                 -1 * net_load, microgrid.modules.grid.item().max_production
             )
+            # grid_export = max(
+            #     net_load, microgrid.modules.grid.item().max_consumption
+            # )
             # print("Grid import ", grid_import)
 
             # Total load of all nodes in the microgrid
