@@ -186,10 +186,10 @@ def generate_battery_modules(c_names: list):
     for name in c_names:
         battery = BatteryModule(
             min_capacity=0,
-            max_capacity=23296.7,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
-            max_charge=2329.67, # can maximum charge 10% of the battery capacity in 1 step
-            max_discharge=2329.67, # can maximum discharge 10% of the battery capacity in 1 step
-            efficiency=0.9,
+            max_capacity=23296.7 / 3,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
+            max_charge=2329.67 / 3, # can maximum charge 10% of the battery capacity in 1 step
+            max_discharge=2329.67 / 3, # can maximum discharge 10% of the battery capacity in 1 step
+            efficiency=1.0,
             init_soc=0.5,
         )
         battery_modules[name] = battery
@@ -205,7 +205,8 @@ def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
     node_modules = {}
 
     for name in c_names:
-        for i in range(1, 7):  # 1 through 6
+        #for i in range(1, 7):  # 1 through 6
+        for i in range (1, 3):
             node_name = f"{name}-{i}"
             node = NodeModule(
                 time_series=60 * np.random.rand(final_step),  # Ignored anyway
@@ -250,7 +251,8 @@ def generate_microgrids(
         ]
 
         # Add the 6 node modules
-        for i in range(1, 7):
+        #for i in range(1, 7):
+        for i in range(1, 3):
             module_list.append(nodes[f"{name}-{i}"])
 
         # Add the grid module
@@ -384,7 +386,7 @@ def main():
 
     total_capacity_of_installations = (
         #1800.0  # W, such that it cannot fully cover the load of nodes at full capacity
-        3600.0  # W, such that it cannot fully cover the load of nodes at full capacity
+        3600.0 / 3  # W, such that it cannot fully cover the load of nodes at full capacity
     )
 
     while True:
@@ -399,17 +401,17 @@ def main():
         # print("Grid dict after update ", grid_dict)
 
         for microgrid in microgrids.values():
-            print("Microgrid Name: ", microgrid.grid_name)
+            print("Microgrid Name: ", microgrid.grid_name) # Add this back if it's part of your logging sequence here
 
             load = 0.0
             net_load = 0.0
-
-            for i in range(0, 6):
-                # print(microgrid.modules.node[i].node_name)
+            
+            #for i in range(0, 6):
+            for i in range(0, 2):
+                # print(microgrid.modules.node[i].node_name) # Original commented-out print
                 microgrid.modules.node[i].update_current_load(
                     grid_dict[microgrid.modules.node[i].node_name]
                 )
-
                 load += -1.0 * microgrid.modules.node[i].current_load
 
             pv = (
@@ -418,22 +420,44 @@ def main():
             )
 
             net_load = load + pv
+            
             # if net_load > 0:
             #     net_load = 0.0
 
-            battery_discharge = min(
-                -1 * net_load, microgrid.modules.battery[0].max_production
-            )
-            # print("Battery discharge ", battery_discharge)
-            net_load += battery_discharge
+            battery_command = 0.0
+            grid_command = 0.0
+            
+            current_soc = microgrid.modules.battery[0].soc
 
-            grid_import = min(
-                -1 * net_load, microgrid.modules.grid.item().max_production
-            )
-            # grid_export = max(
-            #     net_load, microgrid.modules.grid.item().max_consumption
-            # )
-            # print("Grid import ", grid_import)
+            battery_max_charge_power = microgrid.modules.battery[0].max_consumption
+            battery_max_discharge_power = microgrid.modules.battery[0].max_production
+            grid_max_export_power = microgrid.modules.grid.item().max_consumption
+            grid_max_import_power = microgrid.modules.grid.item().max_production
+
+            if net_load > 0:
+                surplus_power = net_load
+                if current_soc < 0.999: 
+                    charge_to_battery = min(surplus_power, battery_max_charge_power)
+                    battery_command = -charge_to_battery
+                    
+                    remaining_surplus = surplus_power - charge_to_battery
+                    if remaining_surplus > 0:
+                        export_to_grid = min(remaining_surplus, grid_max_export_power)
+                        grid_command = -export_to_grid
+                else: 
+                    battery_command = 0.0 
+                    export_to_grid = min(surplus_power, grid_max_export_power)
+                    grid_command = -export_to_grid
+
+            elif net_load < 0:
+                deficit_power = -net_load 
+                discharge_from_battery = min(deficit_power, battery_max_discharge_power)
+                battery_command = discharge_from_battery
+                
+                remaining_deficit = deficit_power - discharge_from_battery
+                if remaining_deficit > 0:
+                    import_from_grid = min(remaining_deficit, grid_max_import_power)
+                    grid_command = import_from_grid
 
             # Total load of all nodes in the microgrid
             total_load = (
@@ -454,31 +478,22 @@ def main():
                 + grid_dict[microgrid.modules.node[5].node_name]
             )
 
-            print("Load ", total_load)
+            print("Load ", total_load) 
             print("Grid dict load ", total_grid_dict_load)
             print(
                 "Renewable ",
                 microgrid.modules.pv_source[0].current_renewable
                 * total_capacity_of_installations,
             )
-            print("Battery SOC ", microgrid.modules.battery[0].soc)
+            print("Battery SOC ", microgrid.modules.battery[0].soc) # This is current_soc before action
             print(
-                "Battery level of charge ", microgrid.modules.battery[0].current_charge
+                "Battery level of charge ", microgrid.modules.battery[0].current_charge # Before action
             )
 
-            # custom_action.update(
-            #     {
-            #         "battery": [
-            #             microgrid.modules.node[0].current_load
-            #             - (microgrid.modules.pv_source[0].current_renewable * total_capacity_of_installations) # The current_renewable is a PECD value, so we need to multiply it with the total capacity of the installations to find out the kW value of the step.
-            #         ],
-            #         "grid": [microgrid.modules.grid[0].grid_status[0]]
-            #     }
-            # )
             custom_action.update(
                 {
-                    "battery": [battery_discharge],
-                    "grid": [grid_import],
+                    "battery": [battery_command],
+                    "grid": [grid_command],
                 }
             )
             print("Custom action ", custom_action)
