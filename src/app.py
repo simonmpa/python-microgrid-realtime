@@ -376,7 +376,7 @@ def main():
     # microgrid.reset()
 
     wait_time = (
-        1  # 120 seconds to make the simulation 30x times faster than real time.
+        120  # 120 seconds to make the simulation 30x times faster than real time.
     )
     starttime = time.monotonic()
 
@@ -384,7 +384,7 @@ def main():
 
     total_capacity_of_installations = (
         #1800.0  # W, such that it cannot fully cover the load of nodes at full capacity
-        3600.0  # W, such that it cannot fully cover the load of nodes at full capacity
+        3600.0 / 3  # W, such that it cannot fully cover the load of nodes at full capacity
     )
 
     while True:
