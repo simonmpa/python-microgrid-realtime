@@ -189,11 +189,7 @@ def generate_battery_modules(c_names: list):
             max_capacity=23296.7 / 3,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
             max_charge=2329.67 / 3, # can maximum charge 10% of the battery capacity in 1 step
             max_discharge=2329.67 / 3, # can maximum discharge 10% of the battery capacity in 1 step
-<<<<<<< HEAD
-            efficiency=0.9,
-=======
             efficiency=1.0,
->>>>>>> d1dcf7ae4eaef1466a38ff537282a6e3b299ad25
             init_soc=0.5,
         )
         battery_modules[name] = battery
@@ -210,11 +206,7 @@ def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
 
     for name in c_names:
         #for i in range(1, 7):  # 1 through 6
-<<<<<<< HEAD
-        for i in range(1, 3):
-=======
         for i in range (1, 3):
->>>>>>> d1dcf7ae4eaef1466a38ff537282a6e3b299ad25
             node_name = f"{name}-{i}"
             node = NodeModule(
                 time_series=60 * np.random.rand(final_step),  # Ignored anyway
@@ -259,11 +251,7 @@ def generate_microgrids(
         ]
 
         # Add the 6 node modules
-<<<<<<< HEAD
-        # for i in range(1, 7):
-=======
         #for i in range(1, 7):
->>>>>>> d1dcf7ae4eaef1466a38ff537282a6e3b299ad25
         for i in range(1, 3):
             module_list.append(nodes[f"{name}-{i}"])
 
@@ -417,17 +405,10 @@ def main():
 
             load = 0.0
             net_load = 0.0
-<<<<<<< HEAD
 
             # for i in range(0, 6):
             for i in range(0, 2):
                 # print(microgrid.modules.node[i].node_name)
-=======
-            
-            #for i in range(0, 6):
-            for i in range(0, 2):
-                # print(microgrid.modules.node[i].node_name) # Original commented-out print
->>>>>>> d1dcf7ae4eaef1466a38ff537282a6e3b299ad25
                 microgrid.modules.node[i].update_current_load(
                     grid_dict[microgrid.modules.node[i].node_name]
                 )
