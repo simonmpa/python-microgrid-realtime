@@ -186,9 +186,9 @@ def generate_battery_modules(c_names: list):
     for name in c_names:
         battery = BatteryModule(
             min_capacity=0,
-            max_capacity=23296.7 / 3,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
-            max_charge=2329.67 / 3, # can maximum charge 10% of the battery capacity in 1 step
-            max_discharge=2329.67 / 3, # can maximum discharge 10% of the battery capacity in 1 step
+            max_capacity=23296.7,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
+            max_charge=2329.67, # can maximum charge 10% of the battery capacity in 1 step
+            max_discharge=2329.67, # can maximum discharge 10% of the battery capacity in 1 step
             efficiency=1.0,
             init_soc=0.5,
         )
@@ -205,8 +205,8 @@ def generate_node_modules(c_names: list, final_step: int, grid_dict: dict):
     node_modules = {}
 
     for name in c_names:
-        #for i in range(1, 7):  # 1 through 6
-        for i in range (1, 3):
+        for i in range(1, 7):  # 1 through 6
+        #for i in range (1, 3):
             node_name = f"{name}-{i}"
             node = NodeModule(
                 time_series=60 * np.random.rand(final_step),  # Ignored anyway
@@ -251,8 +251,8 @@ def generate_microgrids(
         ]
 
         # Add the 6 node modules
-        #for i in range(1, 7):
-        for i in range(1, 3):
+        for i in range(1, 7):
+        #for i in range(1, 3):
             module_list.append(nodes[f"{name}-{i}"])
 
         # Add the grid module
@@ -386,7 +386,7 @@ def main():
 
     total_capacity_of_installations = (
         #1800.0  # W, such that it cannot fully cover the load of nodes at full capacity
-        3600.0 / 3  # W, such that it cannot fully cover the load of nodes at full capacity
+        3600.0 # W, such that it cannot fully cover the load of nodes at full capacity
     )
 
     while True:
@@ -406,8 +406,8 @@ def main():
             load = 0.0
             net_load = 0.0
 
-            # for i in range(0, 6):
-            for i in range(0, 2):
+            for i in range(0, 6):
+            #for i in range(0, 2):
                 # print(microgrid.modules.node[i].node_name)
                 microgrid.modules.node[i].update_current_load(
                     grid_dict[microgrid.modules.node[i].node_name]
@@ -463,19 +463,19 @@ def main():
             total_load = (
                 microgrid.modules.node[0].current_load
                 + microgrid.modules.node[1].current_load
-                # + microgrid.modules.node[2].current_load
-                # + microgrid.modules.node[3].current_load
-                # + microgrid.modules.node[4].current_load
-                # + microgrid.modules.node[5].current_load
+                + microgrid.modules.node[2].current_load
+                + microgrid.modules.node[3].current_load
+                + microgrid.modules.node[4].current_load
+                + microgrid.modules.node[5].current_load
             )
 
             total_grid_dict_load = (
                 grid_dict[microgrid.modules.node[0].node_name]
                 + grid_dict[microgrid.modules.node[1].node_name]
-                # + grid_dict[microgrid.modules.node[2].node_name]
-                # + grid_dict[microgrid.modules.node[3].node_name]
-                # + grid_dict[microgrid.modules.node[4].node_name]
-                # + grid_dict[microgrid.modules.node[5].node_name]
+                + grid_dict[microgrid.modules.node[2].node_name]
+                + grid_dict[microgrid.modules.node[3].node_name]
+                + grid_dict[microgrid.modules.node[4].node_name]
+                + grid_dict[microgrid.modules.node[5].node_name]
             )
 
             print("Load ", total_load) 
