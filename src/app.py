@@ -189,7 +189,7 @@ def generate_battery_modules(c_names: list):
             max_capacity=23296.7,  # 101.29 Ahr rougly 23296.7 Wh or 23.3 kWh
             max_charge=2329.67, # can maximum charge 10% of the battery capacity in 1 step
             max_discharge=2329.67, # can maximum discharge 10% of the battery capacity in 1 step
-            efficiency=1.0,
+            efficiency=0.9,
             init_soc=0.5,
         )
         battery_modules[name] = battery
