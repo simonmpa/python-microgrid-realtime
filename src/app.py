@@ -70,11 +70,11 @@ def db_load_retrieve():
 
     return rows
 
-
 def grid_co2_emission(path: str) -> Dict[str, float]:
     """
     Calculates the average hourly carbon intensity (direct) for each Zone ID
     from all CSV files in the given folder path.
+    Returns values in gCO₂ per Wh.
     """
     zone_carbon_averages = {}
 
@@ -90,13 +90,14 @@ def grid_co2_emission(path: str) -> Dict[str, float]:
                 and not df.empty
             ):
                 zone_id = df.iloc[0]["Zone id"]
-                avg_carbon = df["Carbon intensity gCO₂eq/kWh (direct)"].mean()
+                avg_carbon_kwh = df["Carbon intensity gCO₂eq/kWh (direct)"].mean()
+                avg_carbon_wh = avg_carbon_kwh / 1000  # From kWh to Wh
 
                 # Aggregate averages if multiple files per zone
                 if zone_id in zone_carbon_averages:
-                    zone_carbon_averages[zone_id].append(avg_carbon)
+                    zone_carbon_averages[zone_id].append(avg_carbon_wh)
                 else:
-                    zone_carbon_averages[zone_id] = [avg_carbon]
+                    zone_carbon_averages[zone_id] = [avg_carbon_wh]
 
     # Final average per zone across all files
     return {
