@@ -157,12 +157,17 @@ def generate_grid_modules(c_names: list, co2: dict, final_step: int, electricity
 
     for name in c_names:
         country_code = name[:2]
-        co2_value = co2.get(country_code, 999)  # Default to 999 given not found
-        print(co2_value)
-        electricity_value = electricity_price.get(country_code, 888)  # Default to 888 given not found
+        if country_code == "UK":
+            lookup_code = "GB"
+        else:
+            lookup_code = country_code
+
+        co2_value = co2.get(lookup_code, 999) # Use 999 if not found
+        # print(name, co2_value)
+        electricity_value = electricity_price.get(lookup_code, 888) # Use 888 if not found
 
         import_price = np.full(final_step, electricity_value)
-        export_price = np.full(final_step, electricity_value * 0.9)  # 90% of import price
+        export_price = np.full(final_step, electricity_value * 0.9) # Sell back to the grid for 90% of the import price
         co2_series = np.full(final_step, co2_value)
 
         time_series = np.array([import_price, export_price, co2_series]).T
