@@ -153,20 +153,16 @@ def update_grid_load(grid_dict: dict, rows: list, default_value: float = 120):
 
 
 def generate_grid_modules(c_names: list, co2: dict, final_step: int, electricity_price: dict):
-    """
-    Generate the grid modules for each grid name in the c_names list.
-    It uses the co2 dict to get the CO2 value for each grid name.
-    The default value is set to 999 if the grid name is not found in the co2 dict.
-    The electricity price is set based on the electricity_price dict and is 999 if not found since it should not be able to fail.
-    """
     grid_modules = {}
 
     for name in c_names:
-        co2_value = co2.get(name, 999)  # Use 999 if not found
-        electricity_value = electricity_price.get(name, 888)  # Use 999 if not found
+        country_code = name[:2]
+        co2_value = co2.get(country_code, 999)  # Default to 999 given not found
+        print(co2_value)
+        electricity_value = electricity_price.get(country_code, 888)  # Default to 888 given not found
 
         import_price = np.full(final_step, electricity_value)
-        export_price = np.full(final_step, electricity_value * 0.9)  # Sell back to the grid for 90% of the import price
+        export_price = np.full(final_step, electricity_value * 0.9)  # 90% of import price
         co2_series = np.full(final_step, co2_value)
 
         time_series = np.array([import_price, export_price, co2_series]).T
