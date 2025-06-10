@@ -380,9 +380,9 @@ def main():
     # microgrid.reset()
 
     wait_time = (
-        120  # 120 seconds to make the simulation 30x times faster than real time.
+        20.0  # 20 seconds to make the simulation 30x times faster than real time.
     )
-    starttime = time.monotonic()
+    # starttime = time.monotonic()
 
     state_of_charge = []
 
@@ -392,8 +392,8 @@ def main():
     )
 
     while True:
-        # for j in range(24):
-        # time.sleep(wait_time - ((time.monotonic() - starttime) % wait_time))
+        starttime = time.monotonic()
+
         state_of_charge.clear()
         rows = db_load_retrieve()
         print("Selected rows ", rows)
@@ -403,7 +403,7 @@ def main():
         # print("Grid dict after update ", grid_dict)
 
         for microgrid in microgrids.values():
-            print("Microgrid Name: ", microgrid.grid_name) # Add this back if it's part of your logging sequence here
+            print("Microgrid Name: ", microgrid.grid_name)
 
             load = 0.0
             net_load = 0.0
@@ -526,17 +526,8 @@ def main():
         data = {"data": state_of_charge}
         response = requests.post(url, json=data)
         print(response.status_code, response.json())
-        time.sleep(wait_time)
-
-    # Logging and visualization of the data
-
-    # df = microgrid.get_log()
-    # compute_net_load
-
-    # timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    # filename = f"logs/log-{timestamp}.csv"
-    # df.to_csv(filename, index=False)
-
+        endtime = time.monotonic()
+        time.sleep(wait_time-(endtime-starttime))
 
 if __name__ == "__main__":
     main()
