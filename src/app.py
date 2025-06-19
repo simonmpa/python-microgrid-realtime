@@ -380,7 +380,7 @@ def main():
     # microgrid.reset()
 
     wait_time = (
-        20.0  # 20 seconds to make the simulation 30x times faster than real time.
+        5.0  # 20 seconds to make the simulation 30x times faster than real time.
     )
     # starttime = time.monotonic()
 
@@ -491,6 +491,7 @@ def main():
             print(
                 "Battery level of charge ", microgrid.modules.battery[0].current_charge # Before action
             )
+            print("Current Co2 emission ", microgrid.modules.grid.item().co2_per_kwh[0])
 
             custom_action.update(
                 {
@@ -517,6 +518,7 @@ def main():
                     * total_capacity_of_installations,
                     "Current_load": total_load,
                     "Gridname": microgrid.grid_name,
+                    "CO2_emission": microgrid.modules.grid.item().co2_per_kwh[0],
                 }
             )
             # print(shared_state.state_of_charge)
